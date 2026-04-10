@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { Tool, Category, Pricing } from "../types";
 
+/* ================= TYPES ================= */
 interface ToolCardProps {
   tool: Tool;
   isFavorite: boolean;
@@ -17,25 +18,34 @@ interface ToolCardProps {
   onSelect: (tool: Tool) => void;
 }
 
-/* 🔥 SEO STRUCTURED DATA */
+interface ToolModalProps {
+  tool: Tool;
+  isFavorite: boolean;
+  onClose: () => void;
+  onToggleFavorite: (id: string) => void;
+  onUpvote: (id: string) => void;
+}
+
+/* ================= SEO STRUCTURED DATA ================= */
 function ToolStructuredData({ tool }: { tool: Tool }) {
+  const schema = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: tool.name,
+    applicationCategory: tool.category,
+    description: tool.description,
+    url: tool.website || "",
+  });
+
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          name: tool.name,
-          applicationCategory: tool.category,
-          description: tool.description,
-          url: tool.website,
-        }),
-      }}
+      dangerouslySetInnerHTML={{ __html: schema }}
     />
   );
 }
 
+/* ================= STYLES ================= */
 const PRICING_STYLES: Record<Pricing, string> = {
   Free: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
   Freemium: "bg-blue-500/15 text-blue-400 border border-blue-500/30",
@@ -56,12 +66,13 @@ const CATEGORY_STYLES: Record<Category, string> = {
   Research: "bg-teal-500/15 text-teal-400",
 };
 
-/* ✅ IMAGE */
+/* ================= IMAGE ================= */
 function getImageSrc(tool: Tool): string {
   const src = tool.logo || tool.image_url || "";
   if (src) return src;
 
   try {
+    if (!tool.website) return "";
     const domain = new URL(tool.website).hostname;
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   } catch {
@@ -75,6 +86,7 @@ function ToolAvatar({ tool }: { tool: Tool }) {
 
   const handleError = () => {
     try {
+      if (!tool.website) return setFailed(true);
       const domain = new URL(tool.website).hostname;
       const fallback = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
       if (imgSrc !== fallback) {
@@ -89,8 +101,8 @@ function ToolAvatar({ tool }: { tool: Tool }) {
     return (
       <img
         src={imgSrc}
-        alt={`${tool.name} AI tool for ${tool.category}`}   {/* 🔥 SEO */}
-        title={`${tool.name} - ${tool.category} AI tool`}  {/* 🔥 SEO */}
+        alt={`${tool.name} AI tool for ${tool.category}`}
+        title={`${tool.name} - ${tool.category}`}
         className="w-10 h-10 rounded-xl object-contain bg-gray-700/30 shrink-0"
         loading="lazy"
         onError={handleError}
@@ -112,7 +124,7 @@ function ToolModal({
   onClose,
   onToggleFavorite,
   onUpvote,
-}: any) {
+}: ToolModalProps) {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", esc);
@@ -127,19 +139,16 @@ function ToolModal({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
       <div className="w-full max-w-2xl rounded-2xl bg-[#111827] border border-white/10 p-6 text-white" onClick={(e) => e.stopPropagation()}>
         
-        {/* 🔥 SEO */}
         <ToolStructuredData tool={tool} />
 
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex items-center gap-3">
+        <div className="flex justify-between mb-4">
+          <div className="flex gap-3">
             <ToolAvatar tool={tool} />
-            <div>
-              <h2 className="text-2xl font-bold">{tool.name}</h2>
-            </div>
+            <h2 className="text-2xl font-bold">{tool.name}</h2>
           </div>
 
           <button onClick={onClose}>
-            <X className="w-5 h-5" />
+            <X />
           </button>
         </div>
 
@@ -149,19 +158,18 @@ function ToolModal({
 
         <div className="flex gap-3 flex-wrap">
           <a
-            href={tool.website}
+            href={tool.website || "#"}
             target="_blank"
-            rel="nofollow noopener noreferrer"   {/* 🔥 SEO SAFE */}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium"
+            rel="nofollow noopener noreferrer"
+            className="px-4 py-3 bg-purple-600 rounded-xl flex items-center gap-2"
           >
             <ExternalLink className="w-4 h-4" />
-            Visit Now
+            Visit
           </a>
 
-          {/* 🔥 INTERNAL LINK */}
           <a
             href={`/tool/${tool.id}`}
-            className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-gray-200"
+            className="px-4 py-3 bg-white/10 rounded-xl"
           >
             View Details
           </a>
@@ -190,7 +198,6 @@ export function ToolCard({
           onSelect(tool);
         }}
       >
-        {/* 🔥 SEO */}
         <ToolStructuredData tool={tool} />
 
         <div className="flex items-start gap-3">
@@ -198,7 +205,6 @@ export function ToolCard({
 
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-100 text-sm truncate">
-              {/* 🔥 INTERNAL LINK (NO DESIGN CHANGE) */}
               <a
                 href={`/tool/${tool.id}`}
                 onClick={(e) => e.stopPropagation()}
@@ -212,6 +218,7 @@ export function ToolCard({
               <span className={`text-xs px-2 py-0.5 rounded-full ${CATEGORY_STYLES[tool.category]}`}>
                 {tool.category}
               </span>
+
               {tool.is_trending && (
                 <span className="text-xs text-rose-400 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
