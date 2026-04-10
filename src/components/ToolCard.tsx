@@ -17,6 +17,25 @@ interface ToolCardProps {
   onSelect: (tool: Tool) => void;
 }
 
+/* 🔥 SEO STRUCTURED DATA */
+function ToolStructuredData({ tool }: { tool: Tool }) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: tool.name,
+          applicationCategory: tool.category,
+          description: tool.description,
+          url: tool.website,
+        }),
+      }}
+    />
+  );
+}
+
 const PRICING_STYLES: Record<Pricing, string> = {
   Free: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
   Freemium: "bg-blue-500/15 text-blue-400 border border-blue-500/30",
@@ -37,13 +56,11 @@ const CATEGORY_STYLES: Record<Category, string> = {
   Research: "bg-teal-500/15 text-teal-400",
 };
 
-// ✅ FIXED: Resolves image from logo OR image_url, with Google S2 as backup
+/* ✅ IMAGE */
 function getImageSrc(tool: Tool): string {
-  // Use logo first, then image_url (set by useTools.ts)
   const src = tool.logo || tool.image_url || "";
   if (src) return src;
 
-  // Final fallback: Google favicon service
   try {
     const domain = new URL(tool.website).hostname;
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
@@ -52,18 +69,16 @@ function getImageSrc(tool: Tool): string {
   }
 }
 
-// ✅ Avatar shown only when ALL image sources fail
 function ToolAvatar({ tool }: { tool: Tool }) {
   const [imgSrc, setImgSrc] = useState<string>(getImageSrc(tool));
   const [failed, setFailed] = useState(false);
 
-  // Try Google S2 as second fallback when primary fails
   const handleError = () => {
     try {
       const domain = new URL(tool.website).hostname;
-      const googleFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-      if (imgSrc !== googleFavicon) {
-        setImgSrc(googleFavicon);
+      const fallback = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      if (imgSrc !== fallback) {
+        setImgSrc(fallback);
         return;
       }
     } catch {}
@@ -74,7 +89,8 @@ function ToolAvatar({ tool }: { tool: Tool }) {
     return (
       <img
         src={imgSrc}
-        alt={tool.name}
+        alt={`${tool.name} AI tool for ${tool.category}`}   {/* 🔥 SEO */}
+        title={`${tool.name} - ${tool.category} AI tool`}  {/* 🔥 SEO */}
         className="w-10 h-10 rounded-xl object-contain bg-gray-700/30 shrink-0"
         loading="lazy"
         onError={handleError}
@@ -82,7 +98,6 @@ function ToolAvatar({ tool }: { tool: Tool }) {
     );
   }
 
-  // Letter avatar — only shown if all image sources fail
   return (
     <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-white font-bold shrink-0">
       {tool.name.charAt(0).toUpperCase()}
@@ -90,140 +105,73 @@ function ToolAvatar({ tool }: { tool: Tool }) {
   );
 }
 
+/* ================= MODAL ================= */
 function ToolModal({
   tool,
   isFavorite,
   onClose,
   onToggleFavorite,
   onUpvote,
-}: {
-  tool: Tool;
-  isFavorite: boolean;
-  onClose: () => void;
-  onToggleFavorite: (id: string) => void;
-  onUpvote: (id: string) => void;
-}) {
+}: any) {
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKey);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", esc);
     document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("keydown", handleKey);
+      window.removeEventListener("keydown", esc);
       document.body.style.overflow = "";
     };
   }, [onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-2xl rounded-2xl bg-[#111827] border border-white/10 p-6 text-white"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
+      <div className="w-full max-w-2xl rounded-2xl bg-[#111827] border border-white/10 p-6 text-white" onClick={(e) => e.stopPropagation()}>
+        
+        {/* 🔥 SEO */}
+        <ToolStructuredData tool={tool} />
+
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
-            {/* ✅ FIXED: modal also uses ToolAvatar */}
             <ToolAvatar tool={tool} />
             <div>
               <h2 className="text-2xl font-bold">{tool.name}</h2>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <span className={`text-xs px-2 py-1 rounded-full ${CATEGORY_STYLES[tool.category]}`}>
-                  {tool.category}
-                </span>
-                <span className={`text-xs px-2 py-1 rounded-full ${PRICING_STYLES[tool.pricing]}`}>
-                  {tool.pricing}
-                </span>
-                {tool.is_featured && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                    Featured
-                  </span>
-                )}
-                {tool.is_trending && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                    Trending
-                  </span>
-                )}
-              </div>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10"
-          >
+          <button onClick={onClose}>
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <p className="text-gray-300 mb-4 leading-relaxed">
+        <p className="text-gray-300 mb-4">
           {tool.long_description ?? tool.description}
         </p>
 
-        {tool.tags && tool.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {tool.tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs px-2 py-1 rounded-full bg-white/5 text-gray-300 border border-white/10"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="text-sm text-gray-400 mb-6 space-y-1">
-          <div>🌐 <a href={tool.website} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">{tool.website}</a></div>
-          <div>💰 Pricing: {tool.pricing}</div>
-          <div>🔥 Upvotes: {tool.upvotes}</div>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
+        <div className="flex gap-3 flex-wrap">
           <a
             href={tool.website}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="nofollow noopener noreferrer"   {/* 🔥 SEO SAFE */}
             className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium"
           >
             <ExternalLink className="w-4 h-4" />
             Visit Now
           </a>
 
-          <button
-            type="button"
-            onClick={() => onUpvote(tool.id)}
+          {/* 🔥 INTERNAL LINK */}
+          <a
+            href={`/tool/${tool.id}`}
             className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-gray-200"
           >
-            <ArrowUp className="w-4 h-4 inline mr-2" />
-            {tool.upvotes}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onToggleFavorite(tool.id)}
-            className={`px-4 py-3 rounded-xl border ${
-              isFavorite
-                ? "text-pink-400 bg-pink-500/10 border-pink-500/20"
-                : "text-gray-200 bg-white/5 border-white/10"
-            }`}
-          >
-            <Heart
-              className="w-4 h-4 inline mr-2"
-              fill={isFavorite ? "currentColor" : "none"}
-            />
-            {isFavorite ? "Favorited" : "Favorite"}
-          </button>
+            View Details
+          </a>
         </div>
       </div>
     </div>
   );
 }
 
+/* ================= MAIN ================= */
 export function ToolCard({
   tool,
   isFavorite,
@@ -233,23 +181,33 @@ export function ToolCard({
 }: ToolCardProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
-  const handleCardClick = () => {
-    setModalOpen(true);
-    onSelect(tool);
-  };
-
   return (
     <>
       <div
         className="rounded-2xl border border-gray-700/40 bg-gray-800/30 hover:bg-gray-800/60 hover:border-purple-500/40 transition-all duration-200 cursor-pointer flex flex-col p-5 gap-3 min-h-[220px]"
-        onClick={handleCardClick}
+        onClick={() => {
+          setModalOpen(true);
+          onSelect(tool);
+        }}
       >
+        {/* 🔥 SEO */}
+        <ToolStructuredData tool={tool} />
+
         <div className="flex items-start gap-3">
-          {/* ✅ FIXED: Use ToolAvatar instead of checking tool.logo only */}
           <ToolAvatar tool={tool} />
 
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-100 text-sm truncate">{tool.name}</h3>
+            <h3 className="font-semibold text-gray-100 text-sm truncate">
+              {/* 🔥 INTERNAL LINK (NO DESIGN CHANGE) */}
+              <a
+                href={`/tool/${tool.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:text-purple-400"
+              >
+                {tool.name}
+              </a>
+            </h3>
+
             <div className="flex flex-wrap gap-2 mt-1">
               <span className={`text-xs px-2 py-0.5 rounded-full ${CATEGORY_STYLES[tool.category]}`}>
                 {tool.category}
@@ -279,28 +237,26 @@ export function ToolCard({
 
           <div className="flex items-center gap-1">
             <button
-              type="button"
-              className="text-xs text-gray-400 hover:text-purple-400 px-2 py-1"
               onClick={(e) => {
                 e.stopPropagation();
                 onUpvote(tool.id);
               }}
+              className="text-xs text-gray-400 hover:text-purple-400 px-2 py-1"
             >
               <ArrowUp className="w-3 h-3 inline mr-1" />
               {tool.upvotes}
             </button>
 
             <button
-              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(tool.id);
+              }}
               className={`p-1.5 rounded-lg ${
                 isFavorite
                   ? "text-pink-400 bg-pink-500/10"
                   : "text-gray-500 hover:text-pink-400"
               }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite(tool.id);
-              }}
             >
               <Heart
                 className="w-3.5 h-3.5"
