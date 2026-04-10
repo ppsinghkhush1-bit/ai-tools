@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Sun, Moon, Heart, Plus, Menu, X } from 'lucide-react';
+import { Heart, Plus, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   currentView: string;
   onNavigate: (view: string) => void;
-  darkMode: boolean;
-  onToggleDark: () => void;
   favoritesCount: number;
 }
 
 export function Navbar({
   currentView,
   onNavigate,
-  darkMode,
-  onToggleDark,
   favoritesCount
 }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
@@ -34,13 +30,15 @@ export function Navbar({
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
-        scrolled ? 'glass shadow-glass py-3' : 'py-5 bg-transparent'
+        scrolled
+          ? 'bg-[#0b0f19]/80 backdrop-blur-xl border-b border-white/10 py-3'
+          : 'py-5 bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
 
-          {/* 🔥 LOGO */}
+          {/* LOGO */}
           <button
             onClick={() => onNavigate('home')}
             className="flex items-center gap-2.5 group"
@@ -51,8 +49,6 @@ export function Navbar({
                 alt="There's an AI for That"
                 className="max-w-full max-h-full object-contain drop-shadow-md group-hover:scale-105 transition duration-300"
               />
-
-              {/* Glow */}
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300 blur-lg"
                 style={{
@@ -61,7 +57,6 @@ export function Navbar({
               />
             </div>
 
-            {/* TEXT */}
             <span className="text-xl font-semibold text-white tracking-tight leading-none">
               There’s an <span className="gradient-text font-bold">AI</span> for That
             </span>
@@ -119,18 +114,6 @@ export function Navbar({
               )}
             </button>
 
-            {/* DARK MODE */}
-            <button
-              onClick={onToggleDark}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
-            >
-              {darkMode ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
-            </button>
-
             {/* SUBMIT TOOL */}
             <button
               onClick={() => onNavigate('admin')}
@@ -156,7 +139,7 @@ export function Navbar({
 
         {/* MOBILE NAV */}
         {mobileOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-white/10 animate-fade-in">
+          <div className="md:hidden mt-4 pb-4 border-t border-white/10">
             <div className="flex flex-col gap-1 pt-4">
               {navLinks.map(link => (
                 <button
