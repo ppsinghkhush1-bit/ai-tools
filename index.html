@@ -5,39 +5,62 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NexusAI — Discover the Best AI Tools</title>
-    <meta name="description" content="Explore 500+ curated AI tools for image, video, writing, code, voice, and more. Find the perfect AI tool for your workflow." />
+    <meta
+      name="description"
+      content="Explore 500+ curated AI tools for image, video, writing, code, voice, and more. Find the perfect AI tool for your workflow."
+    />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
 
     <!-- Open Graph -->
     <meta property="og:title" content="NexusAI — Discover the Best AI Tools" />
-    <meta property="og:description" content="Explore 500+ curated AI tools across categories." />
+    <meta
+      property="og:description"
+      content="Explore 500+ curated AI tools across categories."
+    />
     <meta property="og:image" content="https://bolt.new/static/og_default.png" />
+    <meta property="og:type" content="website" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NexusAI — Discover the Best AI Tools" />
+    <meta name="twitter:description" content="Find the best AI tools." />
     <meta name="twitter:image" content="https://bolt.new/static/og_default.png" />
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#0f172a" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- ✅ Google Analytics (CORRECT PLACE) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W1TNZLQBQB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-W1TNZLQBQB', {
+        page_path: window.location.pathname,
+      });
+    </script>
   </head>
 
-  <!-- Scripts placed immediately after head -->
-  <script type="module" src="/src/main.tsx"></script>
+  <body class="bg-dark-900 text-white antialiased">
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
 
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W1TNZLQBQB"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-W1TNZLQBQB');
-  </script>
-
-  <body class="bg-dark-900 text-white">
+    <!-- React Root -->
     <div id="root"></div>
+
+    <!-- App Entry (Vite / React) -->
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
