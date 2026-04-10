@@ -9,7 +9,13 @@ interface NavbarProps {
   favoritesCount: number;
 }
 
-export function Navbar({ currentView, onNavigate, darkMode, onToggleDark, favoritesCount }: NavbarProps) {
+export function Navbar({
+  currentView,
+  onNavigate,
+  darkMode,
+  onToggleDark,
+  favoritesCount
+}: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -37,23 +43,27 @@ export function Navbar({ currentView, onNavigate, darkMode, onToggleDark, favori
           {/* 🔥 LOGO */}
           <button
             onClick={() => onNavigate('home')}
-            className="flex items-center gap-3 group"
+            className="flex items-center gap-2.5 group"
           >
-            <div className="relative group">
+            <div className="relative flex items-center justify-center w-10 h-10">
               <img
                 src="/logo.png"
                 alt="There's an AI for That"
-                className="w-9 h-9 object-contain relative z-10"
+                className="max-w-full max-h-full object-contain drop-shadow-md group-hover:scale-105 transition duration-300"
               />
+
+              {/* Glow */}
               <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300 blur-md"
-                style={{ background: 'linear-gradient(135deg, #00b4ff, #a855f7)' }}
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300 blur-lg"
+                style={{
+                  background: 'linear-gradient(135deg, #00b4ff, #a855f7)'
+                }}
               />
             </div>
 
-            {/* 🔥 BRAND TEXT */}
-            <span className="text-xl font-bold text-white tracking-tight">
-              There’s an <span className="gradient-text">AI</span> for That
+            {/* TEXT */}
+            <span className="text-xl font-semibold text-white tracking-tight leading-none">
+              There’s an <span className="gradient-text font-bold">AI</span> for That
             </span>
           </button>
 
@@ -74,17 +84,21 @@ export function Navbar({ currentView, onNavigate, darkMode, onToggleDark, favori
                     {link.label}
                     <span
                       className="w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, #00b4ff, #a855f7)' }}
+                      style={{
+                        background: 'linear-gradient(135deg, #00b4ff, #a855f7)'
+                      }}
                     >
                       {favoritesCount}
                     </span>
                   </span>
-                ) : link.label}
+                ) : (
+                  link.label
+                )}
               </button>
             ))}
           </div>
 
-          {/* RIGHT ACTIONS */}
+          {/* RIGHT SIDE */}
           <div className="flex items-center gap-2">
 
             {/* MOBILE FAVORITES */}
@@ -96,7 +110,9 @@ export function Navbar({ currentView, onNavigate, darkMode, onToggleDark, favori
               {favoritesCount > 0 && (
                 <span
                   className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[9px] flex items-center justify-center font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg, #00b4ff, #a855f7)' }}
+                  style={{
+                    background: 'linear-gradient(135deg, #00b4ff, #a855f7)'
+                  }}
                 >
                   {favoritesCount}
                 </span>
@@ -107,9 +123,12 @@ export function Navbar({ currentView, onNavigate, darkMode, onToggleDark, favori
             <button
               onClick={onToggleDark}
               className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
-              aria-label="Toggle theme"
             >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {darkMode ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
             </button>
 
             {/* SUBMIT TOOL */}
@@ -126,7 +145,11 @@ export function Navbar({ currentView, onNavigate, darkMode, onToggleDark, favori
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"
             >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
