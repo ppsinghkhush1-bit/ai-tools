@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Prevent duplicate or low-value pages
+Disallow: /api/
+Disallow: /private/
+Disallow: /test/
+Disallow: /*?*
+
+# Allow important SEO pages
+Allow: /tool/
+Allow: /category/
+Allow: /ai-tools-for/
+
+# Sitemap (CRITICAL)
+Sitemap: https://yourdomain.com/sitemap.xml
