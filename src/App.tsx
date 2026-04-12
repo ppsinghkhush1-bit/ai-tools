@@ -11,7 +11,7 @@ import { useFavorites } from "./hooks/useFavorites";
 import type { Tool, ToolFilters, Category } from "./types";
 import { RefreshCw } from "lucide-react";
 
-// 🚀 LAZY LOAD HEAVY COMPONENTS
+// Lazy load heavy components
 const ToolModal = lazy(() => import("./components/ToolModal"));
 const FavoritesView = lazy(() => import("./components/FavoritesView"));
 const AdminPanel = lazy(() => import("./components/AdminPanel"));
@@ -41,7 +41,6 @@ useTools();
 
 const { favorites, toggleFavorite } = useFavorites();
 
-// 🚀 MEMO OPTIMIZATION (lighter processing)
 const safeTools: Tool[] = useMemo(() => {
 if (!tools) return [];
 return tools.map((t) => ({
@@ -144,7 +143,6 @@ setSelectedTool(tool);
 recordView(tool.id);
 
 ```
-  // 🚀 Lazy fetch only when needed
   try {
     const details = await fetchToolDetails(tool.website);
     if (details) {
@@ -214,9 +212,14 @@ favoritesCount={favorites.size}
         />
 
         {showLoadMore && (
-          <button onClick={() => setPage((p) => p + 1)}>
-            Load More
-          </button>
+          <div className="flex justify-center mt-12 pb-20">
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              className="px-10 py-4 bg-purple-600 text-white rounded-xl"
+            >
+              Load More AI Tools
+            </button>
+          </div>
         )}
       </div>
     </main>
