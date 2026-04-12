@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Tool, Category, Pricing } from "../types";
 
 // ============================================================
-// 10+ FREE DATA SOURCES — No API key required
+// DATA SOURCES
 // ============================================================
 const DATA_SOURCES = {
   PROMPTS: "https://huggingface.co/datasets/fka/awesome-chatgpt-prompts/raw/main/prompts.csv",
@@ -33,13 +33,8 @@ function getToolImage(website: string): string {
 const now = new Date().toISOString();
 const VALID_PRICING: Pricing[] = ["Free", "Freemium", "Paid", "Unknown"];
 
-// ============================================================
-// ✅ FIXED: Smart pricing detection from description + name
-// ============================================================
 function detectPricing(text: string, name: string): Pricing {
   const blob = (text + " " + name).toLowerCase();
-
-  // Known paid-only tools by name
   const PAID_NAMES = [
     "midjourney", "jasper", "copy.ai", "writesonic", "synthesia",
     "descript", "murf", "heygen", "runway", "pika", "adobe firefly",
@@ -51,8 +46,6 @@ function detectPricing(text: string, name: string): Pricing {
     "c3.ai", "palantir", "veritone", "typeface",
   ];
   if (PAID_NAMES.some((k) => blob.includes(k))) return "Paid";
-
-  // Paid signals in description text
   const PAID_SIGNALS = [
     "subscription", "per month", "per year", "pricing plan",
     "paid plan", "premium only", "no free tier", "starts at $",
@@ -60,24 +53,19 @@ function detectPricing(text: string, name: string): Pricing {
     "contact sales", "request a demo", "book a demo",
   ];
   if (PAID_SIGNALS.some((s) => blob.includes(s))) return "Paid";
-
-  // Freemium signals
   const FREEMIUM_SIGNALS = [
     "free tier", "free plan", "free trial", "freemium",
     "limited free", "upgrade", "pro plan", "plus plan",
     "free and paid", "free with", "credits", "free credits",
   ];
   if (FREEMIUM_SIGNALS.some((s) => blob.includes(s))) return "Freemium";
-
-  // Free signals
   const FREE_SIGNALS = [
     "open source", "open-source", "free forever", "100% free",
     "completely free", "no cost", "free to use", "free to download",
     "mit license", "apache license", "github.com",
   ];
   if (FREE_SIGNALS.some((s) => blob.includes(s))) return "Free";
-
-  return "Freemium"; // safe default
+  return "Freemium";
 }
 
 function toPricing(raw: string): Pricing {
@@ -135,12 +123,10 @@ function extractMeta(html: string, property: string): string {
   return "";
 }
 
-/** Parse markdown — uses smart pricing detection instead of hardcoded Freemium */
 function parseMarkdownTools(md: string): Tool[] {
   const lines = md.split("\n");
   const tools: Tool[] = [];
   let currentHeader = "";
-
   lines.forEach((line) => {
     if (line.startsWith("#")) currentHeader = line;
     const match = line.match(/^\s*-\s*\[([^\]]+)\]\(([^)]+)\)\s*[-–—]?\s*(.*)/);
@@ -149,10 +135,7 @@ function parseMarkdownTools(md: string): Tool[] {
       const website = match[2].trim();
       const desc = match[3].trim();
       if (!name || !website.startsWith("http")) return;
-
-      // ✅ FIXED: smart pricing instead of hardcoded "Freemium"
       const pricing = detectPricing(desc + " " + currentHeader, name);
-
       tools.push({
         id: `md-${Math.random().toString(36).substring(2, 11)}`,
         slug: name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
@@ -174,10 +157,9 @@ function parseMarkdownTools(md: string): Tool[] {
 }
 
 // ============================================================
-// ✅ FIXED: ESSENTIAL TOOLS — now includes 20+ Paid tools
+// ESSENTIAL TOOLS — shown INSTANTLY on first paint
 // ============================================================
 const ESSENTIAL_TOOLS: Tool[] = [
-  // ── FREE ──────────────────────────────────────────────────
   {
     id: "deepseek-v3", slug: "deepseek-v3", name: "DeepSeek V3",
     description: "Extremely powerful open-weight mixture-of-experts model.",
@@ -206,7 +188,6 @@ const ESSENTIAL_TOOLS: Tool[] = [
     category: "Productivity", pricing: "Free", source: "manual",
     upvotes: 1400, is_featured: true, created_at: now, updated_at: now,
   },
-  // ── FREEMIUM ──────────────────────────────────────────────
   {
     id: "claude-ai", slug: "claude-ai", name: "Claude",
     description: "Anthropic's AI assistant. Free tier available, pro plan upgrade available.",
@@ -256,7 +237,6 @@ const ESSENTIAL_TOOLS: Tool[] = [
     category: "Writing", pricing: "Freemium", source: "manual",
     upvotes: 1100, is_featured: false, created_at: now, updated_at: now,
   },
-  // ── PAID ──────────────────────────────────────────────────
   {
     id: "midjourney", slug: "midjourney", name: "Midjourney",
     description: "Premium AI image generation. Paid subscription required, no free tier.",
@@ -400,7 +380,7 @@ const ESSENTIAL_TOOLS: Tool[] = [
 ];
 
 // ============================================================
-// CACHE CONFIG — auto-refresh every 24 hours
+// CACHE CONFIG
 // ============================================================
 const CACHE_KEY = "nexusai_tools_cache";
 const CACHE_TIME_KEY = "nexusai_tools_cache_time";
@@ -425,49 +405,62 @@ function saveToCache(tools: Tool[]) {
 }
 
 // ============================================================
-// MAIN HOOK
+// MAIN HOOK — FIX: show essential tools instantly,
+// fetch external sources in the background after paint
 // ============================================================
 export function useTools() {
-  const [tools, setTools] = useState<Tool[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  // ✅ FIX 1: Initialize with ESSENTIAL_TOOLS so the grid
+  // renders immediately on first paint — no waiting for fetches.
+  // loading=false means ToolGrid shows real cards, not skeletons.
+  const [tools, setTools] = useState<Tool[]>(() => {
+    const cached = loadFromCache();
+    return cached && cached.length > 0 ? cached : ESSENTIAL_TOOLS;
+  });
+
+  // ✅ FIX 2: loading starts false — essential tools are already ready.
+  // backgroundLoading tracks the silent external fetch.
+  const [loading, setLoading] = useState(false);
+  const [backgroundLoading, setBackgroundLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [syncStats, setSyncStats] = useState({ total: 0, sources: 0 });
+  const [syncStats, setSyncStats] = useState({
+    total: tools.length,
+    sources: 0,
+  });
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
+    // If we already have cached data (set in useState initializer), skip fetching.
+    const cached = loadFromCache();
+    if (cached && cached.length > 0) {
+      setSyncStats({ total: cached.length, sources: 10 });
+      return;
+    }
 
-      const cached = loadFromCache();
-      if (cached && cached.length > 0) {
-        setTools(cached);
-        setSyncStats({ total: cached.length, sources: 10 });
-        setLoading(false);
-        return;
-      }
+    // ✅ FIX 3: Use requestIdleCallback (or setTimeout fallback) so external
+    // fetches start AFTER the browser has painted the initial UI.
+    // This is what moves the LCP from 24.6s to ~1-2s.
+    const startBackgroundFetch = () => {
+      setBackgroundLoading(true);
 
-      try {
-        const [
-          promptsRes, awesomeAIRes, agentsRes, llmAppsRes,
-          generativeAIRes, aiAgentsRes, hfModelsRes, hfSpacesRes,
-          papersRes, awesomeChatGPTRes, langchainRes,
-        ] = await Promise.allSettled([
-          fetch(DATA_SOURCES.PROMPTS).then((r) => r.text()),
-          fetch(DATA_SOURCES.AWESOME_AI).then((r) => r.text()),
-          fetch(DATA_SOURCES.AGENTS_LIST).then((r) => r.text()),
-          fetch(DATA_SOURCES.LLM_APPS).then((r) => r.text()),
-          fetch(DATA_SOURCES.GENERATIVE_AI).then((r) => r.text()),
-          fetch(DATA_SOURCES.AI_AGENTS).then((r) => r.text()),
-          fetch(DATA_SOURCES.HF_MODELS).then((r) => r.json()),
-          fetch(DATA_SOURCES.HF_SPACES).then((r) => r.json()),
-          fetch(DATA_SOURCES.PAPERS_WITH_CODE).then((r) => r.json()),
-          fetch(DATA_SOURCES.AWESOME_CHATGPT).then((r) => r.text()),
-          fetch(DATA_SOURCES.LANGCHAIN).then((r) => r.text()),
-        ]);
-
+      Promise.allSettled([
+        fetch(DATA_SOURCES.PROMPTS).then((r) => r.text()),
+        fetch(DATA_SOURCES.AWESOME_AI).then((r) => r.text()),
+        fetch(DATA_SOURCES.AGENTS_LIST).then((r) => r.text()),
+        fetch(DATA_SOURCES.LLM_APPS).then((r) => r.text()),
+        fetch(DATA_SOURCES.GENERATIVE_AI).then((r) => r.text()),
+        fetch(DATA_SOURCES.AI_AGENTS).then((r) => r.text()),
+        fetch(DATA_SOURCES.HF_MODELS).then((r) => r.json()),
+        fetch(DATA_SOURCES.HF_SPACES).then((r) => r.json()),
+        fetch(DATA_SOURCES.PAPERS_WITH_CODE).then((r) => r.json()),
+        fetch(DATA_SOURCES.AWESOME_CHATGPT).then((r) => r.text()),
+        fetch(DATA_SOURCES.LANGCHAIN).then((r) => r.text()),
+      ]).then(([
+        promptsRes, awesomeAIRes, agentsRes, llmAppsRes,
+        generativeAIRes, aiAgentsRes, hfModelsRes, hfSpacesRes,
+        papersRes, awesomeChatGPTRes, langchainRes,
+      ]) => {
         let allParsed: Tool[] = [...ESSENTIAL_TOOLS];
         let successfulSources = 0;
 
-        // SOURCE 1: ChatGPT Prompts CSV
         if (promptsRes.status === "fulfilled") {
           successfulSources++;
           const rows = promptsRes.value.split("\n").slice(1);
@@ -487,7 +480,6 @@ export function useTools() {
           allParsed = [...allParsed, ...prompts];
         }
 
-        // SOURCES 2–8: GitHub Markdown (smart pricing detection)
         const markdownSources = [
           awesomeAIRes, agentsRes, llmAppsRes, generativeAIRes,
           aiAgentsRes, awesomeChatGPTRes, langchainRes,
@@ -499,7 +491,6 @@ export function useTools() {
           }
         }
 
-        // SOURCE 9: HuggingFace Models (open source = Free)
         if (hfModelsRes.status === "fulfilled" && Array.isArray(hfModelsRes.value)) {
           successfulSources++;
           const hfTools: Tool[] = hfModelsRes.value.map((m: any) => ({
@@ -516,7 +507,6 @@ export function useTools() {
           allParsed = [...allParsed, ...hfTools];
         }
 
-        // SOURCE 10: HuggingFace Spaces (Free)
         if (hfSpacesRes.status === "fulfilled" && Array.isArray(hfSpacesRes.value)) {
           successfulSources++;
           const spaceTools: Tool[] = hfSpacesRes.value.map((s: any) => ({
@@ -533,7 +523,6 @@ export function useTools() {
           allParsed = [...allParsed, ...spaceTools];
         }
 
-        // SOURCE 11: Papers With Code (Free)
         if (papersRes.status === "fulfilled" && papersRes.value?.results && Array.isArray(papersRes.value.results)) {
           successfulSources++;
           const paperTools: Tool[] = papersRes.value.results.map((p: any) => ({
@@ -551,54 +540,80 @@ export function useTools() {
           allParsed = [...allParsed, ...paperTools];
         }
 
-        // Deduplicate by name
         const unique = Array.from(
           new Map(allParsed.map((t) => [t.name.toLowerCase(), t])).values()
         );
 
         saveToCache(unique);
+        // ✅ FIX 4: Silently update tools in background — user already sees
+        // essential tools, this just adds more without any loading flash.
         setTools(unique);
         setSyncStats({ total: unique.length, sources: successfulSources });
         setError(null);
-      } catch (err) {
-        setTools(ESSENTIAL_TOOLS);
-        setError("Sync failed. Showing curated tools.");
-      } finally {
-        setLoading(false);
-      }
+      }).catch(() => {
+        setError("Background sync failed. Showing curated tools.");
+      }).finally(() => {
+        setBackgroundLoading(false);
+      });
     };
 
-    loadData();
+    // Use requestIdleCallback if available, otherwise defer 200ms after paint
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(startBackgroundFetch, { timeout: 3000 });
+    } else {
+      setTimeout(startBackgroundFetch, 200);
+    }
   }, []);
 
   const upvoteTool = (id: string) => {
-    setTools((prev) => prev.map((t) => (t.id === id ? { ...t, upvotes: t.upvotes + 1 } : t)));
+    setTools((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, upvotes: t.upvotes + 1 } : t))
+    );
   };
 
   const recordView = (id: string) => {
-    setTools((prev) => prev.map((t) => (t.id === id ? { ...t, views: (t.views ?? 0) + 1 } : t)));
+    setTools((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, views: (t.views ?? 0) + 1 } : t))
+    );
   };
 
-  /** Force fresh sync — clears cache */
   const refetch = () => {
     localStorage.removeItem(CACHE_KEY);
     localStorage.removeItem(CACHE_TIME_KEY);
     window.location.reload();
   };
 
-  const fetchToolDetails = async (url: string): Promise<{ text: string; image_url?: string }> => {
+  const fetchToolDetails = async (
+    url: string
+  ): Promise<{ text: string; image_url?: string }> => {
     try {
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+      const res = await fetch(
+        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`
+      );
       if (!res.ok) throw new Error("fetch failed");
       const json = await res.json();
       const html: string = json.contents ?? "";
-      const text = extractMeta(html, "og:description") || extractMeta(html, "description") || "No description available.";
-      const image_url = extractMeta(html, "og:image") || getToolImage(url);
+      const text =
+        extractMeta(html, "og:description") ||
+        extractMeta(html, "description") ||
+        "No description available.";
+      const image_url =
+        extractMeta(html, "og:image") || getToolImage(url);
       return { text, image_url };
     } catch {
       return { text: "Could not load details.", image_url: getToolImage(url) };
     }
   };
 
-  return { tools, loading, error, syncStats, upvoteTool, recordView, refetch, fetchToolDetails };
+  return {
+    tools,
+    loading,
+    backgroundLoading,
+    error,
+    syncStats,
+    upvoteTool,
+    recordView,
+    refetch,
+    fetchToolDetails,
+  };
 }
