@@ -24,8 +24,8 @@ export function Footer() {
               />
             </div>
 
-            <span className="text-lg font-semibold text-white tracking-tight">
-              There’s an <span className="gradient-text font-bold">AI</span> for That
+            <span className="text-2xl font-bold text-white tracking-tight leading-none">
+              Best <span className="gradient-text font-extrabold">AI</span> Tools
             </span>
           </div>
 
