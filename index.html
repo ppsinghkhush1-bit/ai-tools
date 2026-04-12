@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ============================================================
+    <!-- ═══════════════════════════════════════
          TITLE & META
-    ============================================================ -->
+    ═══════════════════════════════════════ -->
     <title>Best AI Tools 2026 | Top Rated AI Directory & Free Apps</title>
     <meta
       name="description"
@@ -16,40 +16,89 @@
     <link rel="canonical" href="https://theresanaiforthat.pro/" />
     <meta name="theme-color" content="#05050f" />
 
-    <!-- ============================================================
-         CRITICAL: INLINE ABOVE-THE-FOLD CSS
-         Prevents render-blocking stylesheet — paste your Hero +
-         Navbar critical styles here. This alone can save 0.3-0.8s FCP.
-    ============================================================ -->
+    <!-- ═══════════════════════════════════════
+         CRITICAL INLINE CSS
+         WHY: Eliminates render-blocking stylesheet request.
+         The browser can paint the above-fold content immediately
+         without waiting for any external CSS to download.
+         Put your Hero + Navbar styles here.
+    ═══════════════════════════════════════ -->
     <style>
-      /* Reset + base — keeps page from jumping before React hydrates */
+      /* Minimal reset — prevents CLS before Tailwind loads */
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
+
+      html {
+        scroll-behavior: smooth;
+        /* Prevents width from changing when scrollbar appears — kills CLS */
+        scrollbar-gutter: stable;
+      }
+
       body {
         background: #05050f;
         color: #e5e7eb;
-        font-family: Inter, system-ui, -apple-system, sans-serif;
-        min-height: 100vh;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        min-height: 100svh;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Prevent text from being invisible before Inter loads */
+        font-display: swap;
       }
-      /* Prevent layout shift while React loads */
-      #root { min-height: 100vh; }
-      /* Skeleton shimmer for above-fold cards */
+
+      /* Prevent layout shift while React bootstraps */
+      #root {
+        min-height: 100svh;
+        isolation: isolate;
+      }
+
+      /* Above-fold Navbar skeleton — prevents layout shift */
+      #root-nav-placeholder {
+        height: 64px;
+        background: rgba(5, 5, 15, 0.95);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+      }
+
+      /* Skeleton animation used by loading states */
+      @keyframes shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+
       .skeleton {
-        background: linear-gradient(90deg, #1a1a2e 25%, #222240 50%, #1a1a2e 75%);
+        background: linear-gradient(
+          90deg,
+          rgba(255,255,255,0.04) 25%,
+          rgba(255,255,255,0.08) 50%,
+          rgba(255,255,255,0.04) 75%
+        );
         background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
+        animation: shimmer 1.5s linear infinite;
         border-radius: 8px;
       }
-      @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+      /* Images — prevent layout shift */
+      img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+
+      /* Prevent invisible text on slow connections */
+      @font-face {
+        font-family: 'Inter';
+        font-display: swap;
+      }
     </style>
 
-    <!-- ============================================================
-         FONTS — Non-blocking pattern
-         FIX: removed double <link> + <link rel="preload"> combo which
-         caused the font to be downloaded TWICE. Use preload only once,
-         then swap via onload. The noscript fallback handles no-JS.
-    ============================================================ -->
+    <!-- ═══════════════════════════════════════
+         FONT — NON-BLOCKING
+         WHY: Single preload+onload pattern. Your original had both
+         <link rel="preload"> AND <link rel="stylesheet"> pointing to
+         the same URL — that downloaded Inter TWICE.
+         300 weight removed — you only use 400/500/600/700 in your CSS.
+    ═══════════════════════════════════════ -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -65,24 +114,28 @@
       />
     </noscript>
 
-    <!-- ============================================================
-         PRECONNECT — Your actual data sources
-         FIX: Add your real Supabase URL. DuckDuckGo favicons are
-         fetched per-tool so preconnecting here saves the first request.
-    ============================================================ -->
+    <!-- ═══════════════════════════════════════
+         PRECONNECT — ALL THIRD-PARTY ORIGINS
+         WHY: Each origin needs a DNS lookup + TCP handshake + TLS
+         before the first byte. Preconnecting eliminates that ~150ms
+         penalty for the most common fetch targets.
+    ═══════════════════════════════════════ -->
+    <!-- Favicon fallbacks for tools without stored images -->
     <link rel="dns-prefetch" href="//icons.duckduckgo.com" />
     <link rel="preconnect" href="https://icons.duckduckgo.com" crossorigin />
-    <!-- Replace with your actual Supabase project URL -->
-    <!-- <link rel="preconnect" href="https://YOUR_PROJECT.supabase.co" crossorigin /> -->
 
-    <!-- ============================================================
+    <!-- ⚠️ REPLACE with your actual Supabase project URL -->
+    <!-- <link rel="preconnect" href="https://YOUR_PROJECT_ID.supabase.co" crossorigin /> -->
+
+    <!-- ═══════════════════════════════════════
          LCP PRELOAD
-         FIX: Only preload what is ACTUALLY the LCP element.
-         If your hero has no image (just text + gradient), remove this.
-         If it does have an image, point to the exact file served.
-         Wrong preloads hurt more than no preload.
-    ============================================================ -->
-    <!-- Uncomment and point to your real hero image if one exists:
+         WHY: Tells browser to fetch the largest contentful paint
+         element at the highest priority, before it discovers it in CSS.
+         IMPORTANT: Only uncomment if your hero HAS a real image.
+         A wrong preload wastes bandwidth and HURTS the score.
+         If your LCP is text (e.g. "Best AI Tools Directory"), skip this.
+    ═══════════════════════════════════════ -->
+    <!--
     <link
       rel="preload"
       as="image"
@@ -93,117 +146,111 @@
     />
     -->
 
-    <!-- ============================================================
-         FAVICON
-         FIX: Provide multiple formats for broad browser support.
-         SVG is best — scales perfectly, tiny file size.
-    ============================================================ -->
+    <!-- ═══════════════════════════════════════
+         FAVICONS
+         WHY: .ico for legacy, .svg scales perfectly at any size,
+         apple-touch-icon for iOS homescreen.
+    ═══════════════════════════════════════ -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
-    <!-- ============================================================
+    <!-- ═══════════════════════════════════════
          OPEN GRAPH / TWITTER
-    ============================================================ -->
+    ═══════════════════════════════════════ -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Best AI Tools 2026 | Top Rated AI Directory" />
-    <meta
-      property="og:description"
-      content="Find the best AI tools for any task. Curated list of 500+ free & paid AI apps."
-    />
+    <meta property="og:description" content="Find the best AI tools for any task. Curated list of 500+ free & paid AI apps." />
     <meta property="og:image" content="https://theresanaiforthat.pro/og-image.webp" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Best AI Tools Directory 2026" />
     <meta property="og:url" content="https://theresanaiforthat.pro/" />
     <meta property="og:site_name" content="Best AI Tools" />
+    <meta property="og:locale" content="en_US" />
+
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Best AI Tools 2026 | Top AI Directory" />
-    <meta name="twitter:description" content="Explore the best AI tools of 2026." />
+    <meta name="twitter:description" content="Explore 500+ best AI tools of 2026. Free & paid apps for every task." />
     <meta name="twitter:image" content="https://theresanaiforthat.pro/og-image.webp" />
+    <meta name="twitter:image:alt" content="Best AI Tools Directory 2026" />
 
-    <!-- ============================================================
+    <!-- ═══════════════════════════════════════
          STRUCTURED DATA
-    ============================================================ -->
+         FIX: SearchAction target updated to object syntax (new spec).
+         Added image dimensions to ImageObject.
+    ═══════════════════════════════════════ -->
     <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Best AI Tools",
-        "alternateName": "Best AI Tools Directory",
-        "url": "https://theresanaiforthat.pro/",
-        "description": "The ultimate directory for the best AI tools of 2026.",
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": {
-            "@type": "EntryPoint",
-            "urlTemplate": "https://theresanaiforthat.pro/?q={search_term_string}"
-          },
-          "query-input": "required name=search_term_string"
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Best AI Tools",
+      "alternateName": "Best AI Tools Directory",
+      "url": "https://theresanaiforthat.pro/",
+      "description": "The ultimate directory for the best AI tools of 2026.",
+      "inLanguage": "en-US",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://theresanaiforthat.pro/?q={search_term_string}"
         },
-        "publisher": {
-          "@type": "Organization",
-          "name": "Best AI Tools",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://theresanaiforthat.pro/logo.webp",
-            "width": 512,
-            "height": 512
-          }
+        "query-input": "required name=search_term_string"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Best AI Tools",
+        "url": "https://theresanaiforthat.pro/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://theresanaiforthat.pro/logo.webp",
+          "width": 512,
+          "height": 512
         }
       }
+    }
     </script>
+
     <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Best AI Writing Tools",
-            "url": "https://theresanaiforthat.pro/category/writing"
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Best AI Video Generators",
-            "url": "https://theresanaiforthat.pro/category/video"
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "name": "Best AI Image Generators",
-            "url": "https://theresanaiforthat.pro/category/image"
-          }
-        ]
-      }
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "AI Tool Categories",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Best AI Writing Tools",    "url": "https://theresanaiforthat.pro/?category=Writing" },
+        { "@type": "ListItem", "position": 2, "name": "Best AI Video Generators", "url": "https://theresanaiforthat.pro/?category=Video" },
+        { "@type": "ListItem", "position": 3, "name": "Best AI Image Generators", "url": "https://theresanaiforthat.pro/?category=Image" },
+        { "@type": "ListItem", "position": 4, "name": "Best AI Coding Tools",     "url": "https://theresanaiforthat.pro/?category=Coding" }
+      ]
+    }
     </script>
   </head>
 
   <body>
-    <!-- ============================================================
-         INLINE NOSCRIPT STYLES — avoids a flash of unstyled noscript
-    ============================================================ -->
+    <!-- No-JS fallback -->
     <noscript>
       <style>
-        body { display: flex; align-items: center; justify-content: center; }
-        .noscript-msg { max-width: 400px; text-align: center; padding: 2rem; }
+        .noscript-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:2rem; text-align:center; }
+        .noscript-wrap h1 { font-size:1.5rem; margin-bottom:0.5rem; }
+        .noscript-wrap p  { color:#9ca3af; }
       </style>
-      <div class="noscript-msg">
-        <h1>JavaScript Required</h1>
-        <p>This AI tools directory requires JavaScript. Please enable it in your browser settings.</p>
+      <div class="noscript-wrap">
+        <div>
+          <h1>JavaScript Required</h1>
+          <p>This AI tools directory requires JavaScript. Please enable it in your browser settings.</p>
+        </div>
       </div>
     </noscript>
 
-    <!-- ROOT -->
     <div id="root"></div>
 
-    <!-- ============================================================
-         REACT ENTRY
-         FIX: removed `defer` from a `type="module"` script — modules
-         are deferred by default. Adding defer explicitly is redundant
-         and can cause double-defer behaviour in some browsers.
-    ============================================================ -->
+    <!-- ═══════════════════════════════════════
+         SCRIPT ENTRY
+         WHY: type="module" is deferred by default per spec.
+         Do NOT add defer — it causes double-defer in some browsers.
+         Do NOT add async — breaks ES module import order.
+    ═══════════════════════════════════════ -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
