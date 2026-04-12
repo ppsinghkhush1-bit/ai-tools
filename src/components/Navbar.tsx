@@ -58,7 +58,7 @@ export function Navbar({
             </div>
 
             <span className="text-xl font-semibold text-white tracking-tight leading-none">
-              There’s an <span className="gradient-text font-bold">AI</span> for That
+              Best <span className="gradient-text font-bold">AI</span> Tools
             </span>
           </button>
 
