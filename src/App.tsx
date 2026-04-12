@@ -11,7 +11,6 @@ import { useFavorites } from "./hooks/useFavorites";
 import type { Tool, ToolFilters, Category } from "./types";
 import { RefreshCw } from "lucide-react";
 
-// Lazy load heavy components
 const ToolModal = lazy(() => import("./components/ToolModal"));
 const FavoritesView = lazy(() => import("./components/FavoritesView"));
 const AdminPanel = lazy(() => import("./components/AdminPanel"));
