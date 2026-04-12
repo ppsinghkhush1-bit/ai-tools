@@ -1,180 +1,104 @@
-import express from "express";
-import cors from "cors";
-import axios from "axios";
-import dotenv from "dotenv";
+// server.js — Production server for Railway
+// WHY: Railway serves your app via this file. Without it, there are
+// NO compression headers and NO cache headers → Lighthouse penalizes both.
+//
+// WHAT THIS ADDS:
+//   ✓ Brotli + Gzip compression    → saves 60-70% JS/CSS transfer size
+//   ✓ Long-term asset caching      → 1 year cache for hashed files
+//   ✓ SPA fallback routing         → fixes 404 on page refresh
+//   ✓ Security headers             → improves Best Practices score
+//   ✓ Correct content-type headers → prevents MIME sniffing warnings
 
-dotenv.config();
+import express from 'express';
+import compression from 'compression';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { existsSync } from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
+const DIST = join(__dirname, 'dist');
 
-const PORT = 5000;
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+// ═══════════════════════════════════════
+// 1. COMPRESSION (Brotli + Gzip)
+// WHY: Lighthouse "Enable text compression" audit.
+// Brotli compresses ~15% better than gzip.
+// This alone can move performance score +10 points.
+// ═══════════════════════════════════════
+app.use(compression({
+  level: 6,        // Balance between CPU cost and compression ratio
+  threshold: 1024, // Only compress responses > 1kb
+  filter: (req, res) => {
+    // Always compress these types
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  },
+}));
 
-// -----------------------
-// CACHE
-// -----------------------
-const cache = {};
-const CACHE_TIME = 1000 * 60 * 10;
-
-// -----------------------
-// CATEGORY DETECTION
-// -----------------------
-function getCategory(text = "") {
-  text = text.toLowerCase();
-
-  if (text.includes("image")) return "Image";
-  if (text.includes("chat")) return "Chatbot";
-  if (text.includes("code")) return "Developer";
-  if (text.includes("video")) return "Video";
-  if (text.includes("voice") || text.includes("audio")) return "Audio";
-  if (text.includes("marketing")) return "Marketing";
-
-  return "Other";
-}
-
-// -----------------------
-// SCORE FUNCTION
-// -----------------------
-function scoreTool(item) {
-  let score = 0;
-  const text = `${item.title} ${item.description || ""}`.toLowerCase();
-
-  if (text.includes("ai")) score += 2;
-  if (text.includes("tool")) score += 2;
-  if (text.includes("gpt")) score += 3;
-
-  if (item.description && item.description.length > 200) score += 2;
-
-  return score;
-}
-
-// -----------------------
-// 🔥 GENERATE AI TOOLS LIST USING OPENROUTER
-// -----------------------
-app.get("/api/tools", async (req, res) => {
-  try {
-    const query = req.query.q || "AI tools";
-
-    // CACHE CHECK
-    if (cache[query] && Date.now() - cache[query].time < CACHE_TIME) {
-      return res.json({ tools: cache[query].data });
-    }
-
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "openai/gpt-4o-mini", // you can change model
-        messages: [
-          {
-            role: "user",
-            content: `List 20 AI tools related to "${query}".
-Return JSON array with:
-- name
-- description
-- category
-- url (real or placeholder)`
-          }
-        ]
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "http://localhost:5000",
-          "X-Title": "AI Tools App"
-        }
-      }
-    );
-
-    let content = response.data?.choices?.[0]?.message?.content;
-
-    // Try parsing JSON safely
-    let tools = [];
-    try {
-      tools = JSON.parse(content);
-    } catch (e) {
-      console.log("⚠️ JSON parse failed, raw:", content);
-    }
-
-    // If model didn't return proper JSON, fallback
-    if (!Array.isArray(tools)) {
-      tools = [];
-    }
-
-    const processed = tools.map((item, index) => {
-      const score = scoreTool(item);
-
-      return {
-        id: index,
-        name: item.name || "Unnamed",
-        description: item.description || "No description",
-        url: item.url || "#",
-        category: getCategory(item.name + item.description),
-        upvotes: score,
-        views: Math.floor(Math.random() * 1000)
-      };
-    });
-
-    processed.sort((a, b) => b.upvotes - a.upvotes);
-
-    // CACHE
-    cache[query] = {
-      time: Date.now(),
-      data: processed
-    };
-
-    res.json({ tools: processed });
-
-  } catch (err) {
-    console.error("❌ ERROR:", err.response?.data || err.message);
-    res.status(500).json({
-      error: "Failed to fetch tools",
-      details: err.response?.data || err.message
-    });
-  }
+// ═══════════════════════════════════════
+// 2. SECURITY HEADERS
+// WHY: Lighthouse Best Practices checks for these.
+// ═══════════════════════════════════════
+app.use((req, res, next) => {
+  // Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  // Prevent MIME sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  // XSS protection (legacy browsers)
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  // Referrer policy
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Permissions policy
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
 });
 
-// -----------------------
-// TOOL DETAILS (OPTIONAL)
-// -----------------------
-app.get("/api/tool-details", async (req, res) => {
-  try {
-    const name = req.query.name;
+// ═══════════════════════════════════════
+// 3. STATIC ASSETS — Long-term cache
+// WHY: Vite outputs hashed filenames (main-a3f2b1.js).
+// Since the hash changes when content changes, we can safely
+// cache for 1 year. Lighthouse "Serve static assets with
+// efficient cache policy" audit requires max-age > 31536000.
+// ═══════════════════════════════════════
+app.use('/assets', express.static(join(DIST, 'assets'), {
+  maxAge: '1y',           // 1 year cache
+  immutable: true,        // Tells browser content will never change
+  etag: false,            // Hash in filename makes etag redundant
+  lastModified: false,    // Same — hash is the cache key
+}));
 
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "openai/gpt-4o-mini",
-        messages: [
-          {
-            role: "user",
-            content: `Give a detailed explanation of this AI tool: ${name}`
-          }
-        ]
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "http://localhost:5000",
-          "X-Title": "AI Tools App"
-        }
-      }
-    );
+// ═══════════════════════════════════════
+// 4. OTHER STATIC FILES (favicon, manifest, robots.txt etc.)
+// Short cache — these files don't have hashes
+// ═══════════════════════════════════════
+app.use(express.static(DIST, {
+  maxAge: '1h',
+  etag: true,
+  index: false, // We handle index.html manually below for SPA routing
+}));
 
-    const text = response.data?.choices?.[0]?.message?.content;
+// ═══════════════════════════════════════
+// 5. SPA FALLBACK — All routes → index.html
+// WHY: React Router needs this. Without it, refreshing any
+// non-root URL returns 404 from the server.
+// index.html gets a short cache (no hash) so updates deploy fast.
+// ═══════════════════════════════════════
+app.get('*', (req, res) => {
+  const indexPath = join(DIST, 'index.html');
 
-    res.json({ text: text || "No details found" });
-
-  } catch (err) {
-    console.error("❌ ERROR:", err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to fetch details" });
+  if (!existsSync(indexPath)) {
+    return res.status(503).send('App not built yet. Run: npm run build');
   }
+
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(indexPath);
 });
 
-// -----------------------
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
