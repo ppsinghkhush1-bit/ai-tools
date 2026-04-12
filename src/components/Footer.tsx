@@ -36,7 +36,7 @@ export function Footer() {
 
           {/* 🔥 COPYRIGHT */}
           <div className="text-gray-500 text-xs">
-            © 2026 There’s an AI for That
+            © 2026 Best AI Tools
           </div>
 
         </div>
