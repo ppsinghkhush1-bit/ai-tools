@@ -61,12 +61,12 @@ return "";
 }, [tools]);
 
 const filteredTools = useMemo(() => {
-const searchLower = filters.search.toLowerCase().trim();
+const search = filters.search.toLowerCase().trim();
 return safeTools.filter((tool) => {
-if (searchLower) {
+if (search) {
 const text =
 tool.name + tool.description + (tool.long_description || "");
-if (!text.toLowerCase().includes(searchLower)) return false;
+if (!text.toLowerCase().includes(search)) return false;
 }
 if (filters.category !== "All" && tool.category !== filters.category)
 return false;
@@ -169,7 +169,7 @@ const favoriteTools = useMemo(
 );
 
 return (
-<div className={`min-h-screen ${darkMode ? "dark bg-[#05050f] text-gray-200" : "bg-white text-gray-900"}`}>
+<div className={darkMode ? "dark bg-[#05050f] text-gray-200 min-h-screen" : "bg-white text-gray-900 min-h-screen"}>
 <Navbar
 currentView={currentView}
 onNavigate={handleNavigate}
@@ -215,9 +215,9 @@ favoritesCount={favorites.size}
           <div className="flex justify-center mt-12 pb-20">
             <button
               onClick={() => setPage((p) => p + 1)}
-              className="px-10 py-4 bg-purple-600 text-white rounded-xl"
+              className="px-8 py-3 bg-purple-600 text-white rounded-lg"
             >
-              Load More AI Tools
+              Load More
             </button>
           </div>
         )}
