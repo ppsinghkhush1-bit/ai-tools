@@ -17,19 +17,26 @@
     <meta name="theme-color" content="#05050f" />
 
     <!-- ═══════════════════════════════════════
+         PRECONNECTS — MUST BE FIRST
+         These eliminate DNS+TCP+TLS penalty before any fetch fires.
+         ORDER MATTERS: put before fonts, before scripts, before everything.
+    ═══════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://icons.duckduckgo.com" crossorigin />
+    <!-- ⚠️ REPLACE with your actual Supabase project URL -->
+    <!-- <link rel="preconnect" href="https://YOUR_PROJECT_ID.supabase.co" crossorigin /> -->
+
+    <!-- ═══════════════════════════════════════
          CRITICAL INLINE CSS
-         WHY: Eliminates render-blocking stylesheet request.
-         The browser can paint the above-fold content immediately
-         without waiting for any external CSS to download.
-         Put your Hero + Navbar styles here.
+         Eliminates render-blocking stylesheet request.
+         Browser paints above-fold immediately.
     ═══════════════════════════════════════ -->
     <style>
-      /* Minimal reset — prevents CLS before Tailwind loads */
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       html {
         scroll-behavior: smooth;
-        /* Prevents width from changing when scrollbar appears — kills CLS */
         scrollbar-gutter: stable;
       }
 
@@ -40,27 +47,35 @@
         min-height: 100svh;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        /* Prevent text from being invisible before Inter loads */
-        font-display: swap;
       }
 
-      /* Prevent layout shift while React bootstraps */
       #root {
         min-height: 100svh;
         isolation: isolate;
       }
 
-      /* Above-fold Navbar skeleton — prevents layout shift */
-      #root-nav-placeholder {
+      /* Navbar skeleton — prevents layout shift before React mounts */
+      #root:empty::before {
+        content: '';
+        display: block;
         height: 64px;
         background: rgba(5, 5, 15, 0.95);
         border-bottom: 1px solid rgba(255,255,255,0.06);
-        display: flex;
-        align-items: center;
-        padding: 0 1.5rem;
       }
 
-      /* Skeleton animation used by loading states */
+      /* Hero skeleton — prevents LCP element shift */
+      #root:empty::after {
+        content: '';
+        display: block;
+        min-height: 420px;
+        background: linear-gradient(
+          180deg,
+          rgba(124,58,237,0.04) 0%,
+          transparent 100%
+        );
+      }
+
+      /* Skeleton shimmer for loading states */
       @keyframes shimmer {
         0%   { background-position: 200% 0; }
         100% { background-position: -200% 0; }
@@ -78,14 +93,12 @@
         border-radius: 8px;
       }
 
-      /* Images — prevent layout shift */
       img {
         display: block;
         max-width: 100%;
         height: auto;
       }
 
-      /* Prevent invisible text on slow connections */
       @font-face {
         font-family: 'Inter';
         font-display: swap;
@@ -94,18 +107,13 @@
 
     <!-- ═══════════════════════════════════════
          FONT — NON-BLOCKING
-         WHY: Single preload+onload pattern. Your original had both
-         <link rel="preload"> AND <link rel="stylesheet"> pointing to
-         the same URL — that downloaded Inter TWICE.
-         300 weight removed — you only use 400/500/600/700 in your CSS.
+         Preload + onload pattern — downloads once, never twice.
     ═══════════════════════════════════════ -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="preload"
       as="style"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      onload="this.rel='stylesheet'"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript>
       <link
@@ -115,41 +123,12 @@
     </noscript>
 
     <!-- ═══════════════════════════════════════
-         PRECONNECT — ALL THIRD-PARTY ORIGINS
-         WHY: Each origin needs a DNS lookup + TCP handshake + TLS
-         before the first byte. Preconnecting eliminates that ~150ms
-         penalty for the most common fetch targets.
+         DNS PREFETCH — lower-priority origins
     ═══════════════════════════════════════ -->
-    <!-- Favicon fallbacks for tools without stored images -->
     <link rel="dns-prefetch" href="//icons.duckduckgo.com" />
-    <link rel="preconnect" href="https://icons.duckduckgo.com" crossorigin />
-
-    <!-- ⚠️ REPLACE with your actual Supabase project URL -->
-    <!-- <link rel="preconnect" href="https://YOUR_PROJECT_ID.supabase.co" crossorigin /> -->
-
-    <!-- ═══════════════════════════════════════
-         LCP PRELOAD
-         WHY: Tells browser to fetch the largest contentful paint
-         element at the highest priority, before it discovers it in CSS.
-         IMPORTANT: Only uncomment if your hero HAS a real image.
-         A wrong preload wastes bandwidth and HURTS the score.
-         If your LCP is text (e.g. "Best AI Tools Directory"), skip this.
-    ═══════════════════════════════════════ -->
-    <!--
-    <link
-      rel="preload"
-      as="image"
-      href="/hero.webp"
-      fetchpriority="high"
-      imagesrcset="/hero-480.webp 480w, /hero-800.webp 800w, /hero.webp 1200w"
-      imagesizes="100vw"
-    />
-    -->
 
     <!-- ═══════════════════════════════════════
          FAVICONS
-         WHY: .ico for legacy, .svg scales perfectly at any size,
-         apple-touch-icon for iOS homescreen.
     ═══════════════════════════════════════ -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -178,8 +157,6 @@
 
     <!-- ═══════════════════════════════════════
          STRUCTURED DATA
-         FIX: SearchAction target updated to object syntax (new spec).
-         Added image dimensions to ImageObject.
     ═══════════════════════════════════════ -->
     <script type="application/ld+json">
     {
@@ -228,7 +205,6 @@
   </head>
 
   <body>
-    <!-- No-JS fallback -->
     <noscript>
       <style>
         .noscript-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:2rem; text-align:center; }
@@ -245,12 +221,6 @@
 
     <div id="root"></div>
 
-    <!-- ═══════════════════════════════════════
-         SCRIPT ENTRY
-         WHY: type="module" is deferred by default per spec.
-         Do NOT add defer — it causes double-defer in some browsers.
-         Do NOT add async — breaks ES module import order.
-    ═══════════════════════════════════════ -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
