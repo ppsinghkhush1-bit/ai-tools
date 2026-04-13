@@ -9,15 +9,17 @@ export default defineConfig({
     compression({ algorithm: 'gzip', ext: '.gz' }),
   ],
   build: {
+    minify: 'esbuild',
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
+          supabase: ['@supabase/supabase-js'],
           ui: ['./src/components/ToolModal.tsx', './src/components/AdminPanel.tsx'],
         }
       }
-    },
-    cssCodeSplit: true,
-    minify: 'terser',
+    }
   }
 })
