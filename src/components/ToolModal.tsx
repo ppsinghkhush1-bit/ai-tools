@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   ExternalLink,
@@ -62,11 +63,9 @@ export function ToolModal({
 
   useEffect(() => {
     if (!tool) return;
-
     setUpvoted(false);
     onRecordView(tool.id);
     document.body.style.overflow = 'hidden';
-
     return () => {
       document.body.style.overflow = '';
     };
@@ -74,11 +73,9 @@ export function ToolModal({
 
   useEffect(() => {
     if (!tool) return;
-
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [tool, onClose]);
@@ -90,11 +87,26 @@ export function ToolModal({
   function handleUpvote() {
     if (upvoted) return;
     setUpvoted(true);
-    onUpvote(tool.id);
+    onUpvote(tool!.id);
   }
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
+  const modal = (
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+        background: 'rgba(2,2,10,0.85)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      }}
+    >
       <div
         role="dialog"
         aria-modal="true"
@@ -103,11 +115,11 @@ export function ToolModal({
         style={{
           background: 'rgba(10,10,26,0.95)',
           border: '1px solid rgba(255,255,255,0.1)',
-          boxShadow:
-            '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,180,255,0.1)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,180,255,0.1)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Decorative orbs */}
         <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
           <div
             className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-10"
@@ -120,6 +132,7 @@ export function ToolModal({
         </div>
 
         <div className="relative p-6 sm:p-8">
+          {/* Close button */}
           <button
             type="button"
             onClick={onClose}
@@ -129,6 +142,7 @@ export function ToolModal({
             <X className="w-5 h-5" />
           </button>
 
+          {/* Header */}
           <div className="flex items-start gap-4 mb-6">
             <div
               className="p-1.5 rounded-2xl"
@@ -191,6 +205,7 @@ export function ToolModal({
             </div>
           </div>
 
+          {/* Body */}
           <div className="space-y-6">
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
@@ -248,6 +263,7 @@ export function ToolModal({
               </div>
             </div>
 
+            {/* Actions */}
             <div className="flex items-center gap-3 pt-2">
               <a
                 href={tool.website}
@@ -290,4 +306,7 @@ export function ToolModal({
       </div>
     </div>
   );
+
+  // ✅ Portal renders modal directly on body — fixes positioning issues
+  return createPortal(modal, document.body);
 }
