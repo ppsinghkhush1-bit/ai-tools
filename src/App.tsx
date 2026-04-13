@@ -10,9 +10,16 @@ import { useTools } from "./hooks/useTools";
 import { useFavorites } from "./hooks/useFavorites";
 import type { Tool, ToolFilters, Category } from "./types";
 
-const ToolModal = lazy(() => import("./components/ToolModal"));
-const FavoritesView = lazy(() => import("./components/FavoritesView"));
-const AdminPanel = lazy(() => import("./components/AdminPanel"));
+// ✅ FIX: .then(m => ({ default: m.X })) handles named exports with lazy()
+const ToolModal = lazy(() =>
+  import("./components/ToolModal").then((m) => ({ default: m.ToolModal }))
+);
+const FavoritesView = lazy(() =>
+  import("./components/FavoritesView").then((m) => ({ default: m.FavoritesView }))
+);
+const AdminPanel = lazy(() =>
+  import("./components/AdminPanel").then((m) => ({ default: m.AdminPanel }))
+);
 
 const PAGE_SIZE = 12;
 
@@ -25,7 +32,6 @@ const defaultFilters: ToolFilters = {
 
 type View = "home" | "favorites" | "admin";
 
-// Moved outside component — pure function, no closure needed
 function getFaviconUrl(website: string): string {
   try {
     return `https://icons.duckduckgo.com/ip3/${new URL(website).hostname}.ico`;
@@ -55,9 +61,6 @@ export default function App() {
       upvotes: t.upvotes ?? 0,
       description: t.description ?? "",
       name: t.name ?? "Untitled",
-      // FIX: no longer executes an IIFE during render.
-      // getFaviconUrl is a stable util called once per tool,
-      // only when t.image_url is missing.
       image_url: t.image_url || getFaviconUrl(t.website),
     }));
   }, [tools]);
