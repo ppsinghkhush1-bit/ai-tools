@@ -1,16 +1,20 @@
-import { Github, Twitter } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
-export function Footer() {
+interface FooterProps {
+  onNavigate: (view: string) => void;
+}
+
+export function Footer({ onNavigate }: FooterProps) {
   return (
     <footer
       className="mt-24 py-12 border-t"
       style={{ borderColor: 'rgba(255,255,255,0.06)' }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
 
-          {/* 🔥 LOGO + NAME */}
+          {/* LOGO + NAME */}
           <div className="flex items-center gap-3 group">
             <div className="relative flex items-center justify-center w-9 h-9">
               <img
@@ -23,20 +27,28 @@ export function Footer() {
                 style={{ background: 'linear-gradient(135deg, #00b4ff, #a855f7)' }}
               />
             </div>
-
             <span className="text-2xl font-bold text-white tracking-tight leading-none">
               Best <span className="gradient-text font-extrabold">AI</span> Tools
             </span>
           </div>
 
-          {/* 🔥 DESCRIPTION */}
+          {/* DESCRIPTION */}
           <p className="text-gray-500 text-sm text-center">
             Discover and explore the best AI tools curated for every use case.
           </p>
 
-          {/* 🔥 COPYRIGHT */}
-          <div className="text-gray-500 text-xs">
-            © 2026 Best AI Tools
+          {/* RIGHT: CONTACT + COPYRIGHT */}
+          <div className="flex flex-col items-center md:items-end gap-2">
+            <button
+              onClick={() => onNavigate('contact')}
+              className="flex items-center gap-1.5 text-gray-500 hover:text-purple-400 transition-colors text-sm"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              Contact Us
+            </button>
+            <div className="text-gray-500 text-xs">
+              © 2026 Best AI Tools
+            </div>
           </div>
 
         </div>
