@@ -8,14 +8,16 @@ import { TrendingSection } from "./components/TrendingSection";
 import { Footer } from "./components/Footer";
 import { useTools } from "./hooks/useTools";
 import { useFavorites } from "./hooks/useFavorites";
+import ContactUs from "./components/ContactUs"; // ✅ NEW
 import type { Tool, ToolFilters, Category } from "./types";
 
-// ✅ FIX: .then(m => ({ default: m.X })) handles named exports with lazy()
 const ToolModal = lazy(() =>
   import("./components/ToolModal").then((m) => ({ default: m.ToolModal }))
 );
 const FavoritesView = lazy(() =>
-  import("./components/FavoritesView").then((m) => ({ default: m.FavoritesView }))
+  import("./components/FavoritesView").then((m) => ({
+    default: m.FavoritesView,
+  }))
 );
 const AdminPanel = lazy(() =>
   import("./components/AdminPanel").then((m) => ({ default: m.AdminPanel }))
@@ -30,7 +32,8 @@ const defaultFilters: ToolFilters = {
   sort: "popular",
 };
 
-type View = "home" | "favorites" | "admin";
+// ✅ "submit" removed, "contact" added
+type View = "home" | "favorites" | "admin" | "contact";
 
 function getFaviconUrl(website: string): string {
   try {
@@ -92,7 +95,11 @@ export default function App() {
       case "name":
         return list.sort((a, b) => a.name.localeCompare(b.name));
       case "free-first": {
-        const order: Record<string, number> = { Free: 0, Freemium: 1, Paid: 2 };
+        const order: Record<string, number> = {
+          Free: 0,
+          Freemium: 1,
+          Paid: 2,
+        };
         return list.sort(
           (a, b) => (order[a.pricing] ?? 99) - (order[b.pricing] ?? 99)
         );
@@ -181,6 +188,7 @@ export default function App() {
         favoritesCount={favorites.size}
       />
 
+      {/* ✅ HOME VIEW */}
       {currentView === "home" && (
         <main>
           <Hero totalTools={safeTools.length} onExplore={handleExplore} />
@@ -232,6 +240,11 @@ export default function App() {
         </main>
       )}
 
+      {/* ✅ CONTACT VIEW (replaces submit) */}
+      {currentView === "contact" && (
+        <ContactUs darkMode={darkMode} />
+      )}
+
       <Suspense fallback={null}>
         {currentView === "favorites" && (
           <FavoritesView
@@ -255,7 +268,7 @@ export default function App() {
         )}
       </Suspense>
 
-      <Footer />
+      <Footer onNavigate={handleNavigate} />
     </div>
   );
 }
