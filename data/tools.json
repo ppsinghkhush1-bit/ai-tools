@@ -1,0 +1,14 @@
+[
+  {
+    "name": "ChatGPT",
+    "slug": "chatgpt",
+    "use_cases": ["students", "writing", "coding"],
+    "description": "AI tool for writing, coding, and learning"
+  },
+  {
+    "name": "Midjourney",
+    "slug": "midjourney",
+    "use_cases": ["design", "images"],
+    "description": "AI image generator"
+  }
+]
