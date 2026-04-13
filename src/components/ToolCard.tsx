@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Heart,
   ArrowUp,
-  ExternalLink,
-  X,
-  Star,
   TrendingUp,
+  Star,
 } from "lucide-react";
 import type { Tool, Category, Pricing } from "../types";
 
@@ -16,14 +14,6 @@ interface ToolCardProps {
   onToggleFavorite: (id: string) => void;
   onUpvote: (id: string) => void;
   onSelect: (tool: Tool) => void;
-}
-
-interface ToolModalProps {
-  tool: Tool;
-  isFavorite: boolean;
-  onClose: () => void;
-  onToggleFavorite: (id: string) => void;
-  onUpvote: (id: string) => void;
 }
 
 /* ================= SEO STRUCTURED DATA ================= */
@@ -117,69 +107,10 @@ function ToolAvatar({ tool }: { tool: Tool }) {
   );
 }
 
-/* ================= MODAL ================= */
-function ToolModal({
-  tool,
-  isFavorite,
-  onClose,
-  onToggleFavorite,
-  onUpvote,
-}: ToolModalProps) {
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", esc);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", esc);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
-
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-2xl bg-[#111827] border border-white/10 p-6 text-white" onClick={(e) => e.stopPropagation()}>
-        
-        <ToolStructuredData tool={tool} />
-
-        <div className="flex justify-between mb-4">
-          <div className="flex gap-3">
-            <ToolAvatar tool={tool} />
-            <h2 className="text-2xl font-bold">{tool.name}</h2>
-          </div>
-
-          <button onClick={onClose}>
-            <X />
-          </button>
-        </div>
-
-        <p className="text-gray-300 mb-4">
-          {tool.long_description ?? tool.description}
-        </p>
-
-        <div className="flex gap-3 flex-wrap">
-          <a
-            href={tool.website || "#"}
-            target="_blank"
-            rel="nofollow noopener noreferrer"
-            className="px-4 py-3 bg-purple-600 rounded-xl flex items-center gap-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Visit
-          </a>
-
-          <a
-            href={`/tool/${tool.id}`}
-            className="px-4 py-3 bg-white/10 rounded-xl"
-          >
-            View Details
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ================= MAIN ================= */
+/* ================= MAIN CARD ================= */
+// ✅ Local modal completely removed — clicking a card fires onSelect()
+// which opens the single global ToolModal managed in App.tsx.
+// This fixes the double-modal / expand-in-grid bug.
 export function ToolCard({
   tool,
   isFavorite,
@@ -187,102 +118,85 @@ export function ToolCard({
   onUpvote,
   onSelect,
 }: ToolCardProps) {
-  const [modalOpen, setModalOpen] = useState(false);
-
   return (
-    <>
-      <div
-        className="rounded-2xl border border-gray-700/40 bg-gray-800/30 hover:bg-gray-800/60 hover:border-purple-500/40 transition-all duration-200 cursor-pointer flex flex-col p-5 gap-3 min-h-[220px]"
-        onClick={() => {
-          setModalOpen(true);
-          onSelect(tool);
-        }}
-      >
-        <ToolStructuredData tool={tool} />
+    <div
+      className="rounded-2xl border border-gray-700/40 bg-gray-800/30 hover:bg-gray-800/60 hover:border-purple-500/40 transition-all duration-200 cursor-pointer flex flex-col p-5 gap-3 min-h-[220px]"
+      onClick={() => onSelect(tool)}
+    >
+      <ToolStructuredData tool={tool} />
 
-        <div className="flex items-start gap-3">
-          <ToolAvatar tool={tool} />
+      <div className="flex items-start gap-3">
+        <ToolAvatar tool={tool} />
 
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-100 text-sm truncate">
-              <a
-                href={`/tool/${tool.id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="hover:text-purple-400"
-              >
-                {tool.name}
-              </a>
-            </h3>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-100 text-sm truncate">
+            <a
+              href={`/tool/${tool.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="hover:text-purple-400"
+            >
+              {tool.name}
+            </a>
+          </h3>
 
-            <div className="flex flex-wrap gap-2 mt-1">
-              <span className={`text-xs px-2 py-0.5 rounded-full ${CATEGORY_STYLES[tool.category]}`}>
-                {tool.category}
+          <div className="flex flex-wrap gap-2 mt-1">
+            <span className={`text-xs px-2 py-0.5 rounded-full ${CATEGORY_STYLES[tool.category]}`}>
+              {tool.category}
+            </span>
+
+            {tool.is_trending && (
+              <span className="text-xs text-rose-400 flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                Trending
               </span>
-
-              {tool.is_trending && (
-                <span className="text-xs text-rose-400 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  Trending
-                </span>
-              )}
-            </div>
-          </div>
-
-          {tool.is_featured && (
-            <Star className="w-4 h-4 text-amber-400 shrink-0" fill="currentColor" />
-          )}
-        </div>
-
-        <p className="text-gray-400 text-xs line-clamp-3 flex-1">
-          {tool.description}
-        </p>
-
-        <div className="flex items-center justify-between mt-auto">
-          <span className={`text-xs px-2 py-0.5 rounded-full ${PRICING_STYLES[tool.pricing]}`}>
-            {tool.pricing}
-          </span>
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onUpvote(tool.id);
-              }}
-              className="text-xs text-gray-400 hover:text-purple-400 px-2 py-1"
-            >
-              <ArrowUp className="w-3 h-3 inline mr-1" />
-              {tool.upvotes}
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite(tool.id);
-              }}
-              className={`p-1.5 rounded-lg ${
-                isFavorite
-                  ? "text-pink-400 bg-pink-500/10"
-                  : "text-gray-500 hover:text-pink-400"
-              }`}
-            >
-              <Heart
-                className="w-3.5 h-3.5"
-                fill={isFavorite ? "currentColor" : "none"}
-              />
-            </button>
+            )}
           </div>
         </div>
+
+        {tool.is_featured && (
+          <Star className="w-4 h-4 text-amber-400 shrink-0" fill="currentColor" />
+        )}
       </div>
 
-      {modalOpen && (
-        <ToolModal
-          tool={tool}
-          isFavorite={isFavorite}
-          onClose={() => setModalOpen(false)}
-          onToggleFavorite={onToggleFavorite}
-          onUpvote={onUpvote}
-        />
-      )}
-    </>
+      <p className="text-gray-400 text-xs line-clamp-3 flex-1">
+        {tool.description}
+      </p>
+
+      <div className="flex items-center justify-between mt-auto">
+        <span className={`text-xs px-2 py-0.5 rounded-full ${PRICING_STYLES[tool.pricing]}`}>
+          {tool.pricing}
+        </span>
+
+        <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpvote(tool.id);
+            }}
+            className="text-xs text-gray-400 hover:text-purple-400 px-2 py-1"
+          >
+            <ArrowUp className="w-3 h-3 inline mr-1" />
+            {tool.upvotes}
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(tool.id);
+            }}
+            className={`p-1.5 rounded-lg ${
+              isFavorite
+                ? "text-pink-400 bg-pink-500/10"
+                : "text-gray-500 hover:text-pink-400"
+            }`}
+          >
+            <Heart
+              className="w-3.5 h-3.5"
+              fill={isFavorite ? "currentColor" : "none"}
+            />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
