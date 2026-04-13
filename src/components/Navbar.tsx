@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, Plus, Menu, X } from 'lucide-react';
+import { Heart, Mail, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   currentView: string;
@@ -24,7 +24,7 @@ export function Navbar({
   const navLinks = [
     { id: 'home', label: 'Discover' },
     { id: 'favorites', label: 'Favorites' },
-    { id: 'admin', label: 'Submit Tool' },
+    { id: 'contact', label: 'Contact Us' }, // ✅ was: { id: 'admin', label: 'Submit Tool' }
   ];
 
   return (
@@ -114,13 +114,13 @@ export function Navbar({
               )}
             </button>
 
-            {/* SUBMIT TOOL */}
+            {/* CONTACT US CTA — ✅ was: Submit Tool → admin */}
             <button
-              onClick={() => onNavigate('admin')}
+              onClick={() => onNavigate('contact')}
               className="hidden md:flex items-center gap-2 btn-primary text-white"
             >
-              <Plus className="w-4 h-4" />
-              Submit Tool
+              <Mail className="w-4 h-4" />
+              Contact Us
             </button>
 
             {/* MOBILE MENU */}
