@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { Tool, Category, Pricing } from "../types";
 
 // ============================================================
-// DATA SOURCES
+// DATA SOURCES — PROMPTS removed (slow CSV, blocked LCP)
 // ============================================================
 const DATA_SOURCES = {
-  PROMPTS: "https://huggingface.co/datasets/fka/awesome-chatgpt-prompts/raw/main/prompts.csv",
   AWESOME_AI: "https://raw.githubusercontent.com/mahseema/awesome-ai-tools/main/README.md",
   AGENTS_LIST: "https://raw.githubusercontent.com/punkpeye/awesome-mcp-servers/main/README.md",
   LLM_APPS: "https://raw.githubusercontent.com/Shubhamsaboo/awesome-llm-apps/main/README.md",
@@ -160,231 +159,45 @@ function parseMarkdownTools(md: string): Tool[] {
 // ESSENTIAL TOOLS — shown INSTANTLY on first paint
 // ============================================================
 const ESSENTIAL_TOOLS: Tool[] = [
-  {
-    id: "deepseek-v3", slug: "deepseek-v3", name: "DeepSeek V3",
-    description: "Extremely powerful open-weight mixture-of-experts model.",
-    website: "https://deepseek.com", image_url: getToolImage("https://deepseek.com"),
-    category: "Code", pricing: "Free", source: "manual",
-    upvotes: 1250, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "ollama", slug: "ollama", name: "Ollama",
-    description: "Run large language models locally on your machine. Open source free forever.",
-    website: "https://ollama.com", image_url: getToolImage("https://ollama.com"),
-    category: "Productivity", pricing: "Free", source: "manual",
-    upvotes: 980, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "stable-diffusion", slug: "stable-diffusion", name: "Stable Diffusion",
-    description: "Open-source AI image generation model. Free to use.",
-    website: "https://stability.ai", image_url: getToolImage("https://stability.ai"),
-    category: "Image", pricing: "Free", source: "manual",
-    upvotes: 1500, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "llama3", slug: "llama3", name: "Meta LLaMA 3",
-    description: "Meta's open-source large language model. Free to download and run.",
-    website: "https://llama.meta.com", image_url: getToolImage("https://llama.meta.com"),
-    category: "Productivity", pricing: "Free", source: "manual",
-    upvotes: 1400, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "claude-ai", slug: "claude-ai", name: "Claude",
-    description: "Anthropic's AI assistant. Free tier available, pro plan upgrade available.",
-    website: "https://claude.ai", image_url: getToolImage("https://claude.ai"),
-    category: "Productivity", pricing: "Freemium", source: "manual",
-    upvotes: 1100, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "chatgpt", slug: "chatgpt", name: "ChatGPT",
-    description: "OpenAI's AI assistant. Free plan available, plus paid pro plan.",
-    website: "https://chat.openai.com", image_url: getToolImage("https://chat.openai.com"),
-    category: "Productivity", pricing: "Freemium", source: "manual",
-    upvotes: 2000, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "gemini", slug: "gemini", name: "Google Gemini",
-    description: "Google's multimodal AI. Free tier with Gemini Advanced upgrade.",
-    website: "https://gemini.google.com", image_url: getToolImage("https://gemini.google.com"),
-    category: "Productivity", pricing: "Freemium", source: "manual",
-    upvotes: 1600, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "perplexity", slug: "perplexity", name: "Perplexity AI",
-    description: "AI-powered search engine. Free tier plus Pro plan available.",
-    website: "https://perplexity.ai", image_url: getToolImage("https://perplexity.ai"),
-    category: "Research", pricing: "Freemium", source: "manual",
-    upvotes: 1200, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "github-copilot", slug: "github-copilot", name: "GitHub Copilot",
-    description: "AI code assistant. Free for students, paid plan for others.",
-    website: "https://github.com/features/copilot", image_url: getToolImage("https://github.com"),
-    category: "Code", pricing: "Freemium", source: "manual",
-    upvotes: 1700, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "canva-ai", slug: "canva-ai", name: "Canva AI",
-    description: "AI-powered design tools. Free plan with pro upgrade available.",
-    website: "https://canva.com", image_url: getToolImage("https://canva.com"),
-    category: "Image", pricing: "Freemium", source: "manual",
-    upvotes: 1300, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "grammarly", slug: "grammarly", name: "Grammarly",
-    description: "AI writing assistant. Free basic plan, premium plan for advanced features.",
-    website: "https://grammarly.com", image_url: getToolImage("https://grammarly.com"),
-    category: "Writing", pricing: "Freemium", source: "manual",
-    upvotes: 1100, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "midjourney", slug: "midjourney", name: "Midjourney",
-    description: "Premium AI image generation. Paid subscription required, no free tier.",
-    website: "https://midjourney.com", image_url: getToolImage("https://midjourney.com"),
-    category: "Image", pricing: "Paid", source: "manual",
-    upvotes: 1800, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "jasper-ai", slug: "jasper-ai", name: "Jasper AI",
-    description: "Enterprise AI content platform for marketing teams. Paid subscription only.",
-    website: "https://jasper.ai", image_url: getToolImage("https://jasper.ai"),
-    category: "Writing", pricing: "Paid", source: "manual",
-    upvotes: 950, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "synthesia", slug: "synthesia", name: "Synthesia",
-    description: "Create AI videos with realistic avatars. Paid plans only, starts at $29/month.",
-    website: "https://synthesia.io", image_url: getToolImage("https://synthesia.io"),
-    category: "Video", pricing: "Paid", source: "manual",
-    upvotes: 870, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "runway-ml", slug: "runway-ml", name: "Runway ML",
-    description: "Professional AI video generation and editing suite. Subscription required.",
-    website: "https://runwayml.com", image_url: getToolImage("https://runwayml.com"),
-    category: "Video", pricing: "Paid", source: "manual",
-    upvotes: 1100, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "heygen", slug: "heygen", name: "HeyGen",
-    description: "AI video platform with talking avatars. Paid subscription required.",
-    website: "https://heygen.com", image_url: getToolImage("https://heygen.com"),
-    category: "Video", pricing: "Paid", source: "manual",
-    upvotes: 760, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "murf-ai", slug: "murf-ai", name: "Murf AI",
-    description: "Professional AI voice generator for studios. Paid plans only.",
-    website: "https://murf.ai", image_url: getToolImage("https://murf.ai"),
-    category: "Audio", pricing: "Paid", source: "manual",
-    upvotes: 680, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "descript", slug: "descript", name: "Descript",
-    description: "AI-powered video and podcast editor. Subscription based pricing.",
-    website: "https://descript.com", image_url: getToolImage("https://descript.com"),
-    category: "Audio", pricing: "Paid", source: "manual",
-    upvotes: 720, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "copy-ai", slug: "copy-ai", name: "Copy.ai",
-    description: "AI copywriting tool for marketing content. Paid subscription.",
-    website: "https://copy.ai", image_url: getToolImage("https://copy.ai"),
-    category: "Writing", pricing: "Paid", source: "manual",
-    upvotes: 800, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "writesonic", slug: "writesonic", name: "Writesonic",
-    description: "AI writer for blogs, ads, and landing pages. Paid plans only.",
-    website: "https://writesonic.com", image_url: getToolImage("https://writesonic.com"),
-    category: "Writing", pricing: "Paid", source: "manual",
-    upvotes: 750, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "beautiful-ai", slug: "beautiful-ai", name: "Beautiful.ai",
-    description: "AI-powered presentation maker. Paid subscription required.",
-    website: "https://beautiful.ai", image_url: getToolImage("https://beautiful.ai"),
-    category: "Productivity", pricing: "Paid", source: "manual",
-    upvotes: 620, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "otter-ai", slug: "otter-ai", name: "Otter.ai",
-    description: "AI meeting transcription and notes for teams. Paid plans.",
-    website: "https://otter.ai", image_url: getToolImage("https://otter.ai"),
-    category: "Productivity", pricing: "Paid", source: "manual",
-    upvotes: 690, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "fireflies-ai", slug: "fireflies-ai", name: "Fireflies.ai",
-    description: "AI notetaker and transcription for meetings. Paid subscription.",
-    website: "https://fireflies.ai", image_url: getToolImage("https://fireflies.ai"),
-    category: "Productivity", pricing: "Paid", source: "manual",
-    upvotes: 640, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "pika-labs", slug: "pika-labs", name: "Pika Labs",
-    description: "AI video generation from text and images. Paid plans only.",
-    website: "https://pika.art", image_url: getToolImage("https://pika.art"),
-    category: "Video", pricing: "Paid", source: "manual",
-    upvotes: 880, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "adobe-firefly", slug: "adobe-firefly", name: "Adobe Firefly",
-    description: "Adobe's AI image generation suite. Requires Creative Cloud subscription.",
-    website: "https://firefly.adobe.com", image_url: getToolImage("https://firefly.adobe.com"),
-    category: "Image", pricing: "Paid", source: "manual",
-    upvotes: 1050, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "scale-ai", slug: "scale-ai", name: "Scale AI",
-    description: "Enterprise AI data platform. Contact sales for pricing.",
-    website: "https://scale.com", image_url: getToolImage("https://scale.com"),
-    category: "Research", pricing: "Paid", source: "manual",
-    upvotes: 730, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "datarobot", slug: "datarobot", name: "DataRobot",
-    description: "Enterprise AI/ML automation platform. Paid enterprise only.",
-    website: "https://datarobot.com", image_url: getToolImage("https://datarobot.com"),
-    category: "Research", pricing: "Paid", source: "manual",
-    upvotes: 560, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "tome-app", slug: "tome-app", name: "Tome",
-    description: "AI-powered storytelling and presentation tool. Paid subscription.",
-    website: "https://tome.app", image_url: getToolImage("https://tome.app"),
-    category: "Productivity", pricing: "Paid", source: "manual",
-    upvotes: 610, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "anyword", slug: "anyword", name: "Anyword",
-    description: "AI copywriting with performance prediction. Paid subscription only.",
-    website: "https://anyword.com", image_url: getToolImage("https://anyword.com"),
-    category: "Writing", pricing: "Paid", source: "manual",
-    upvotes: 520, is_featured: false, created_at: now, updated_at: now,
-  },
-  {
-    id: "elevenlabs", slug: "elevenlabs", name: "ElevenLabs",
-    description: "AI voice cloning and text-to-speech. Paid plans for high usage.",
-    website: "https://elevenlabs.io", image_url: getToolImage("https://elevenlabs.io"),
-    category: "Audio", pricing: "Paid", source: "manual",
-    upvotes: 940, is_featured: true, created_at: now, updated_at: now,
-  },
-  {
-    id: "notion-ai", slug: "notion-ai", name: "Notion AI",
-    description: "AI writing and productivity features inside Notion. Paid add-on per month.",
-    website: "https://notion.so/product/ai", image_url: getToolImage("https://notion.so"),
-    category: "Productivity", pricing: "Paid", source: "manual",
-    upvotes: 900, is_featured: false, created_at: now, updated_at: now,
-  },
+  { id: "deepseek-v3", slug: "deepseek-v3", name: "DeepSeek V3", description: "Extremely powerful open-weight mixture-of-experts model.", website: "https://deepseek.com", image_url: getToolImage("https://deepseek.com"), category: "Code", pricing: "Free", source: "manual", upvotes: 1250, is_featured: true, created_at: now, updated_at: now },
+  { id: "ollama", slug: "ollama", name: "Ollama", description: "Run large language models locally on your machine. Open source free forever.", website: "https://ollama.com", image_url: getToolImage("https://ollama.com"), category: "Productivity", pricing: "Free", source: "manual", upvotes: 980, is_featured: true, created_at: now, updated_at: now },
+  { id: "stable-diffusion", slug: "stable-diffusion", name: "Stable Diffusion", description: "Open-source AI image generation model. Free to use.", website: "https://stability.ai", image_url: getToolImage("https://stability.ai"), category: "Image", pricing: "Free", source: "manual", upvotes: 1500, is_featured: true, created_at: now, updated_at: now },
+  { id: "llama3", slug: "llama3", name: "Meta LLaMA 3", description: "Meta's open-source large language model. Free to download and run.", website: "https://llama.meta.com", image_url: getToolImage("https://llama.meta.com"), category: "Productivity", pricing: "Free", source: "manual", upvotes: 1400, is_featured: true, created_at: now, updated_at: now },
+  { id: "claude-ai", slug: "claude-ai", name: "Claude", description: "Anthropic's AI assistant. Free tier available, pro plan upgrade available.", website: "https://claude.ai", image_url: getToolImage("https://claude.ai"), category: "Productivity", pricing: "Freemium", source: "manual", upvotes: 1100, is_featured: true, created_at: now, updated_at: now },
+  { id: "chatgpt", slug: "chatgpt", name: "ChatGPT", description: "OpenAI's AI assistant. Free plan available, plus paid pro plan.", website: "https://chat.openai.com", image_url: getToolImage("https://chat.openai.com"), category: "Productivity", pricing: "Freemium", source: "manual", upvotes: 2000, is_featured: true, created_at: now, updated_at: now },
+  { id: "gemini", slug: "gemini", name: "Google Gemini", description: "Google's multimodal AI. Free tier with Gemini Advanced upgrade.", website: "https://gemini.google.com", image_url: getToolImage("https://gemini.google.com"), category: "Productivity", pricing: "Freemium", source: "manual", upvotes: 1600, is_featured: true, created_at: now, updated_at: now },
+  { id: "perplexity", slug: "perplexity", name: "Perplexity AI", description: "AI-powered search engine. Free tier plus Pro plan available.", website: "https://perplexity.ai", image_url: getToolImage("https://perplexity.ai"), category: "Research", pricing: "Freemium", source: "manual", upvotes: 1200, is_featured: true, created_at: now, updated_at: now },
+  { id: "github-copilot", slug: "github-copilot", name: "GitHub Copilot", description: "AI code assistant. Free for students, paid plan for others.", website: "https://github.com/features/copilot", image_url: getToolImage("https://github.com"), category: "Code", pricing: "Freemium", source: "manual", upvotes: 1700, is_featured: true, created_at: now, updated_at: now },
+  { id: "canva-ai", slug: "canva-ai", name: "Canva AI", description: "AI-powered design tools. Free plan with pro upgrade available.", website: "https://canva.com", image_url: getToolImage("https://canva.com"), category: "Image", pricing: "Freemium", source: "manual", upvotes: 1300, is_featured: false, created_at: now, updated_at: now },
+  { id: "grammarly", slug: "grammarly", name: "Grammarly", description: "AI writing assistant. Free basic plan, premium plan for advanced features.", website: "https://grammarly.com", image_url: getToolImage("https://grammarly.com"), category: "Writing", pricing: "Freemium", source: "manual", upvotes: 1100, is_featured: false, created_at: now, updated_at: now },
+  { id: "midjourney", slug: "midjourney", name: "Midjourney", description: "Premium AI image generation. Paid subscription required, no free tier.", website: "https://midjourney.com", image_url: getToolImage("https://midjourney.com"), category: "Image", pricing: "Paid", source: "manual", upvotes: 1800, is_featured: true, created_at: now, updated_at: now },
+  { id: "jasper-ai", slug: "jasper-ai", name: "Jasper AI", description: "Enterprise AI content platform for marketing teams. Paid subscription only.", website: "https://jasper.ai", image_url: getToolImage("https://jasper.ai"), category: "Writing", pricing: "Paid", source: "manual", upvotes: 950, is_featured: true, created_at: now, updated_at: now },
+  { id: "synthesia", slug: "synthesia", name: "Synthesia", description: "Create AI videos with realistic avatars. Paid plans only, starts at $29/month.", website: "https://synthesia.io", image_url: getToolImage("https://synthesia.io"), category: "Video", pricing: "Paid", source: "manual", upvotes: 870, is_featured: true, created_at: now, updated_at: now },
+  { id: "runway-ml", slug: "runway-ml", name: "Runway ML", description: "Professional AI video generation and editing suite. Subscription required.", website: "https://runwayml.com", image_url: getToolImage("https://runwayml.com"), category: "Video", pricing: "Paid", source: "manual", upvotes: 1100, is_featured: true, created_at: now, updated_at: now },
+  { id: "heygen", slug: "heygen", name: "HeyGen", description: "AI video platform with talking avatars. Paid subscription required.", website: "https://heygen.com", image_url: getToolImage("https://heygen.com"), category: "Video", pricing: "Paid", source: "manual", upvotes: 760, is_featured: false, created_at: now, updated_at: now },
+  { id: "murf-ai", slug: "murf-ai", name: "Murf AI", description: "Professional AI voice generator for studios. Paid plans only.", website: "https://murf.ai", image_url: getToolImage("https://murf.ai"), category: "Audio", pricing: "Paid", source: "manual", upvotes: 680, is_featured: false, created_at: now, updated_at: now },
+  { id: "descript", slug: "descript", name: "Descript", description: "AI-powered video and podcast editor. Subscription based pricing.", website: "https://descript.com", image_url: getToolImage("https://descript.com"), category: "Audio", pricing: "Paid", source: "manual", upvotes: 720, is_featured: false, created_at: now, updated_at: now },
+  { id: "copy-ai", slug: "copy-ai", name: "Copy.ai", description: "AI copywriting tool for marketing content. Paid subscription.", website: "https://copy.ai", image_url: getToolImage("https://copy.ai"), category: "Writing", pricing: "Paid", source: "manual", upvotes: 800, is_featured: false, created_at: now, updated_at: now },
+  { id: "writesonic", slug: "writesonic", name: "Writesonic", description: "AI writer for blogs, ads, and landing pages. Paid plans only.", website: "https://writesonic.com", image_url: getToolImage("https://writesonic.com"), category: "Writing", pricing: "Paid", source: "manual", upvotes: 750, is_featured: false, created_at: now, updated_at: now },
+  { id: "beautiful-ai", slug: "beautiful-ai", name: "Beautiful.ai", description: "AI-powered presentation maker. Paid subscription required.", website: "https://beautiful.ai", image_url: getToolImage("https://beautiful.ai"), category: "Productivity", pricing: "Paid", source: "manual", upvotes: 620, is_featured: false, created_at: now, updated_at: now },
+  { id: "otter-ai", slug: "otter-ai", name: "Otter.ai", description: "AI meeting transcription and notes for teams. Paid plans.", website: "https://otter.ai", image_url: getToolImage("https://otter.ai"), category: "Productivity", pricing: "Paid", source: "manual", upvotes: 690, is_featured: false, created_at: now, updated_at: now },
+  { id: "fireflies-ai", slug: "fireflies-ai", name: "Fireflies.ai", description: "AI notetaker and transcription for meetings. Paid subscription.", website: "https://fireflies.ai", image_url: getToolImage("https://fireflies.ai"), category: "Productivity", pricing: "Paid", source: "manual", upvotes: 640, is_featured: false, created_at: now, updated_at: now },
+  { id: "pika-labs", slug: "pika-labs", name: "Pika Labs", description: "AI video generation from text and images. Paid plans only.", website: "https://pika.art", image_url: getToolImage("https://pika.art"), category: "Video", pricing: "Paid", source: "manual", upvotes: 880, is_featured: false, created_at: now, updated_at: now },
+  { id: "adobe-firefly", slug: "adobe-firefly", name: "Adobe Firefly", description: "Adobe's AI image generation suite. Requires Creative Cloud subscription.", website: "https://firefly.adobe.com", image_url: getToolImage("https://firefly.adobe.com"), category: "Image", pricing: "Paid", source: "manual", upvotes: 1050, is_featured: true, created_at: now, updated_at: now },
+  { id: "scale-ai", slug: "scale-ai", name: "Scale AI", description: "Enterprise AI data platform. Contact sales for pricing.", website: "https://scale.com", image_url: getToolImage("https://scale.com"), category: "Research", pricing: "Paid", source: "manual", upvotes: 730, is_featured: false, created_at: now, updated_at: now },
+  { id: "datarobot", slug: "datarobot", name: "DataRobot", description: "Enterprise AI/ML automation platform. Paid enterprise only.", website: "https://datarobot.com", image_url: getToolImage("https://datarobot.com"), category: "Research", pricing: "Paid", source: "manual", upvotes: 560, is_featured: false, created_at: now, updated_at: now },
+  { id: "tome-app", slug: "tome-app", name: "Tome", description: "AI-powered storytelling and presentation tool. Paid subscription.", website: "https://tome.app", image_url: getToolImage("https://tome.app"), category: "Productivity", pricing: "Paid", source: "manual", upvotes: 610, is_featured: false, created_at: now, updated_at: now },
+  { id: "anyword", slug: "anyword", name: "Anyword", description: "AI copywriting with performance prediction. Paid subscription only.", website: "https://anyword.com", image_url: getToolImage("https://anyword.com"), category: "Writing", pricing: "Paid", source: "manual", upvotes: 520, is_featured: false, created_at: now, updated_at: now },
+  { id: "elevenlabs", slug: "elevenlabs", name: "ElevenLabs", description: "AI voice cloning and text-to-speech. Paid plans for high usage.", website: "https://elevenlabs.io", image_url: getToolImage("https://elevenlabs.io"), category: "Audio", pricing: "Paid", source: "manual", upvotes: 940, is_featured: true, created_at: now, updated_at: now },
+  { id: "notion-ai", slug: "notion-ai", name: "Notion AI", description: "AI writing and productivity features inside Notion. Paid add-on per month.", website: "https://notion.so/product/ai", image_url: getToolImage("https://notion.so"), category: "Productivity", pricing: "Paid", source: "manual", upvotes: 900, is_featured: false, created_at: now, updated_at: now },
 ];
 
 // ============================================================
 // CACHE CONFIG
 // ============================================================
-const CACHE_KEY = "nexusai_tools_cache";
-const CACHE_TIME_KEY = "nexusai_tools_cache_time";
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const CACHE_KEY = "nexusai_tools_cache_v2";       // ✅ versioned — auto-clears old stale cache
+const CACHE_TIME_KEY = "nexusai_tools_cache_time_v2";
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;          // ✅ 6h (was 24h — too stale)
 
 function loadFromCache(): Tool[] | null {
   try {
@@ -405,21 +218,15 @@ function saveToCache(tools: Tool[]) {
 }
 
 // ============================================================
-// MAIN HOOK — FIX: show essential tools instantly,
-// fetch external sources in the background after paint
+// MAIN HOOK
 // ============================================================
 export function useTools() {
-  // ✅ FIX 1: Initialize with ESSENTIAL_TOOLS so the grid
-  // renders immediately on first paint — no waiting for fetches.
-  // loading=false means ToolGrid shows real cards, not skeletons.
   const [tools, setTools] = useState<Tool[]>(() => {
     const cached = loadFromCache();
     return cached && cached.length > 0 ? cached : ESSENTIAL_TOOLS;
   });
 
-  // ✅ FIX 2: loading starts false — essential tools are already ready.
-  // backgroundLoading tracks the silent external fetch.
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ always false — essential tools ready instantly
   const [backgroundLoading, setBackgroundLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncStats, setSyncStats] = useState({
@@ -428,21 +235,17 @@ export function useTools() {
   });
 
   useEffect(() => {
-    // If we already have cached data (set in useState initializer), skip fetching.
     const cached = loadFromCache();
     if (cached && cached.length > 0) {
       setSyncStats({ total: cached.length, sources: 10 });
       return;
     }
 
-    // ✅ FIX 3: Use requestIdleCallback (or setTimeout fallback) so external
-    // fetches start AFTER the browser has painted the initial UI.
-    // This is what moves the LCP from 24.6s to ~1-2s.
     const startBackgroundFetch = () => {
       setBackgroundLoading(true);
 
+      // ✅ PROMPTS (CSV) removed — was slowest fetch, blocked all others
       Promise.allSettled([
-        fetch(DATA_SOURCES.PROMPTS).then((r) => r.text()),
         fetch(DATA_SOURCES.AWESOME_AI).then((r) => r.text()),
         fetch(DATA_SOURCES.AGENTS_LIST).then((r) => r.text()),
         fetch(DATA_SOURCES.LLM_APPS).then((r) => r.text()),
@@ -454,31 +257,12 @@ export function useTools() {
         fetch(DATA_SOURCES.AWESOME_CHATGPT).then((r) => r.text()),
         fetch(DATA_SOURCES.LANGCHAIN).then((r) => r.text()),
       ]).then(([
-        promptsRes, awesomeAIRes, agentsRes, llmAppsRes,
+        awesomeAIRes, agentsRes, llmAppsRes,
         generativeAIRes, aiAgentsRes, hfModelsRes, hfSpacesRes,
         papersRes, awesomeChatGPTRes, langchainRes,
       ]) => {
         let allParsed: Tool[] = [...ESSENTIAL_TOOLS];
         let successfulSources = 0;
-
-        if (promptsRes.status === "fulfilled") {
-          successfulSources++;
-          const rows = promptsRes.value.split("\n").slice(1);
-          const prompts = rows.map((row, i): Tool | null => {
-            const cols = parseCSVLine(row);
-            if (cols.length < 2 || !cols[0]) return null;
-            const website = "https://prompts.chat";
-            return {
-              id: `p-${i}`, slug: `prompt-${i}`, name: cols[0],
-              description: cols[1]?.slice(0, 100) + "...",
-              long_description: cols[1], website,
-              image_url: getToolImage(website),
-              category: "Writing", pricing: "Free", source: "api",
-              upvotes: 0, created_at: now, updated_at: now,
-            };
-          }).filter((t): t is Tool => t !== null);
-          allParsed = [...allParsed, ...prompts];
-        }
 
         const markdownSources = [
           awesomeAIRes, agentsRes, llmAppsRes, generativeAIRes,
@@ -545,8 +329,6 @@ export function useTools() {
         );
 
         saveToCache(unique);
-        // ✅ FIX 4: Silently update tools in background — user already sees
-        // essential tools, this just adds more without any loading flash.
         setTools(unique);
         setSyncStats({ total: unique.length, sources: successfulSources });
         setError(null);
@@ -557,11 +339,12 @@ export function useTools() {
       });
     };
 
-    // Use requestIdleCallback if available, otherwise defer 200ms after paint
+    // ✅ FIX 1: 500ms timeout (was 200ms) — ensures first paint completes before fetches fire
+    // ✅ FIX 2: requestIdleCallback timeout 2000ms (was 3000ms) — tighter idle window
     if (typeof requestIdleCallback !== "undefined") {
-      requestIdleCallback(startBackgroundFetch, { timeout: 3000 });
+      requestIdleCallback(startBackgroundFetch, { timeout: 2000 });
     } else {
-      setTimeout(startBackgroundFetch, 200);
+      setTimeout(startBackgroundFetch, 500);
     }
   }, []);
 
